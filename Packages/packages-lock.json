@@ -30,7 +30,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "469dee7573d7636150d92c152c159df2a0dd2832"
+      "hash": "9ef5bb739e01c7689b45315b52332d042cadd55b"
     },
     "com.unity.burst": {
       "version": "1.7.3",
@@ -101,15 +101,6 @@
       "depth": 0,
       "source": "registry",
       "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.inputsystem": {
-      "version": "1.4.4",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.modules.uielements": "1.0.0"
-      },
       "url": "https://packages.unity.com"
     },
     "com.unity.mathematics": {
