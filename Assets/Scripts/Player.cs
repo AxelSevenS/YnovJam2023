@@ -9,14 +9,17 @@ public class Player : Character {
 
     public static List<Player> players = new List<Player>();
 
-
-    [SerializeField] protected CameraController cameraController;
-
     private Vector3 _totalMovement = Vector3.zero;
 
     public Vector3 jumpDirection;
 
     private bool sprinting = false;
+
+
+    [SerializeField] protected CameraController cameraController;
+
+    [SerializeField] private Flashlight flashLight;
+
 
 
     public override float movementSpeed {
@@ -27,6 +30,77 @@ public class Player : Character {
 
 
 
+    protected override void CharacterMovement() {
+
+        flashLight.PointFlashLight(cameraController.camera.transform.rotation);
+        flashLight.chargeInput = Input.GetKey(KeyCode.C);
+        flashLight.toggleInput = Input.GetKeyDown(KeyCode.L);
+        flashLight.flashInput = Input.GetKeyDown(KeyCode.F);
+        flashLight.originPosition = characterCollider.transform.position;
+
+        if (flashLight.charging || !enabled)
+            return;
+
+        PlayerMovement();
+
+        bool jumping = Input.GetKeyDown(KeyCode.Space);
+        
+        if (jumping && _isGrounded){
+            _rigidbody.AddForce(jumpDirection, ForceMode.Impulse);
+        }
+    }
+
+
+    protected override void Die() {
+        this.enabled = false;
+    }
+
+    private void PlayerMovement() {
+        bool forward = Input.GetKey(KeyCode.Z);
+        bool back = Input.GetKey(KeyCode.S);
+        bool right = Input.GetKey(KeyCode.D);
+        bool left = Input.GetKey(KeyCode.Q);
+        sprinting = Input.GetKey(KeyCode.LeftShift);
+
+        float movement = forward ? 1f : back ? -0.75f : 0f;
+        float strafe = right ? 1f : left ? -1f : 0f;
+
+
+        Vector3 relativeDirection = new Vector3(strafe, 0f, movement);
+
+        Vector3 groundUp = Vector3.up;
+        Vector3 groundForward = Vector3.Cross(cameraController.camera.transform.right, groundUp);
+        Quaternion forwardRotation = relativeDirection.sqrMagnitude != 0f ? Quaternion.LookRotation(relativeDirection) : Quaternion.identity;
+
+        Quaternion cameraRotation = Quaternion.LookRotation(groundForward, groundUp);
+
+        transform.rotation = Quaternion.Slerp(transform.rotation, cameraRotation * forwardRotation, 5f * Time.deltaTime);
+
+        if (relativeDirection.sqrMagnitude == 0)
+            return;
+
+
+        Vector3 movementDirection = cameraRotation * relativeDirection;
+
+        if ( isGrounded ) {
+            Vector3 rightOfDirection = Vector3.Cross(movementDirection, groundHit.normal).normalized;
+            Vector3 directionConstrainedToGround = Vector3.Cross(groundHit.normal, rightOfDirection).normalized;
+
+            movementDirection = directionConstrainedToGround * movementDirection.magnitude;
+        }
+
+        _totalMovement = movementDirection;
+    }
+
+    private void Flashlight() {
+
+        
+
+    }
+
+    
+
+
     private void OnEnable() {
         players.Add(this);
     }
@@ -35,59 +109,12 @@ public class Player : Character {
         players.Remove(this);
     }
 
-
-
-    protected override void CharacterMovement() {
-
-        PlayerMovement();
-
-
-        bool jumping = Input.GetKeyDown(KeyCode.Space);
-        
-        if (jumping && _isGrounded){
-            _rigidbody.AddForce(jumpDirection, ForceMode.Impulse);
-            _isGrounded = false;
-        }
+    protected override void Start() {
+        base.Start();
     }
 
-    private void PlayerMovement() {
-
-        
-        bool CanMove = true;
-        if (!CanMove){
-            return;
-        }
-            
-
-        bool forward = Input.GetKey(KeyCode.Z);
-        bool back = Input.GetKey(KeyCode.S);
-        bool right = Input.GetKey(KeyCode.D);
-        bool left = Input.GetKey(KeyCode.Q);
-        sprinting = Input.GetKey(KeyCode.LeftShift);
-
-        float movement = forward ? 1f : back ? -1f : 0f;
-        float strafe = right ? 1f : left ? -1f : 0f;
-
-
-        Vector3 relativeDirection = new Vector3(strafe, 0f, movement);
-
-        // if (relativeDirection.sqrMagnitude == 0f) 
-        //     return;
-
-
-        Vector3 absoluteDirection = cameraController.camera.transform.rotation * relativeDirection;
-
-        if ( isGrounded ) {
-            Vector3 rightOfDirection = Vector3.Cross(absoluteDirection, groundHit.normal).normalized;
-            Vector3 directionConstrainedToGround = Vector3.Cross(groundHit.normal, rightOfDirection).normalized;
-
-            absoluteDirection = directionConstrainedToGround * absoluteDirection.magnitude;
-        }
-
-        _totalMovement = absoluteDirection;
-    }
-
-    private void FixedUpdate() {
+    protected override void FixedUpdate() {
+        base.FixedUpdate();
 
         Vector3 movement = _totalMovement * movementSpeed * Time.fixedDeltaTime;
         
@@ -107,8 +134,5 @@ public class Player : Character {
         _totalMovement = Vector3.zero;
     }
 
-
-    protected override void Die() {
-        // throw new System.NotImplementedException();
-    }
+    
 }

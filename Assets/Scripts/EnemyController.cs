@@ -36,8 +36,9 @@ public class EnemyController : MonoBehaviour {
     //     }
     // }
     // private void Start(){
-    //     // Movements();
-    //     HunterController();
+    //     Enemy hunter = null;
+    //     hunter?.Spawn();
+        
     // }
 
     // void Spawn(){

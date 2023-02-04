@@ -11,7 +11,7 @@ public class CameraController : MonoBehaviour {
     public Camera camera;
     public UniversalAdditionalCameraData cameraData;
 
-    private Quaternion entityRotation;
+    // private Quaternion entityRotation;
     private Vector3 delayedPosition;
     private Vector3 cameraVector;
     [SerializeField]private float distanceToPlayer = 1f; 
@@ -70,12 +70,12 @@ public class CameraController : MonoBehaviour {
     }
 
     private void UpdateCameraPosition(){
-        entityRotation = Quaternion.Slerp( entityRotation, target.transform.rotation, 4f * GameUtility.timeDelta );
+        // entityRotation = Quaternion.Slerp( entityRotation, target.transform.rotation, 4f * GameUtility.timeDelta );
         
         // transform.rotation = PlayerEntityController.current.worldCameraRotation;
 
         Quaternion mouseRotation = Quaternion.AngleAxis(mousePosition.x, Vector3.up) * Quaternion.AngleAxis(mousePosition.y, Vector3.right);
-        transform.rotation = target.transform.rotation * mouseRotation;
+        transform.rotation = mouseRotation;
 
         delayedPosition = Vector3.SmoothDamp(delayedPosition, target.transform.position, ref velocity, 0.06f);
         Vector3 camPosition = transform.rotation * cameraVector;
@@ -83,7 +83,7 @@ public class CameraController : MonoBehaviour {
         float camDistance = camPosition.magnitude;
         float distanceToWall = 0.4f;
 
-        if ( Physics.Raycast( delayedPosition, camPosition, out RaycastHit cameraCollisionHit, camPosition.magnitude + distanceToWall, LayerMask.NameToLayer("default") ) ){
+        if ( Physics.Raycast( delayedPosition, camPosition, out RaycastHit cameraCollisionHit, camPosition.magnitude + distanceToWall, LayerMask.GetMask("Default") ) ){
 
             Vector3 collisionToPlayer = delayedPosition - cameraCollisionHit.point;
             Vector3 collisionTangent = Vector3.up;

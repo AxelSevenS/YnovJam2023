@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 using SevenGame.Utility;
+using UnityEngine.UI;
 
+[RequireComponent(typeof(CapsuleCollider))]
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Animator))]
 public abstract class Character : MonoBehaviour {
 
     protected CapsuleCollider characterCollider;
@@ -12,11 +15,12 @@ public abstract class Character : MonoBehaviour {
 
 
 
-    public static LayerMask groundMask;
+    public static LayerMask groundMask = 1;
 
     private float _health = 100f;
+    [SerializeField] private Image _healthImage;
 
-    protected bool _isGrounded = false;
+    [SerializeField] protected bool _isGrounded = false;
     protected RaycastHit groundHit;
 
     public abstract float movementSpeed { get; }
@@ -43,21 +47,31 @@ public abstract class Character : MonoBehaviour {
         get { return groundHit; }
     }
 
-    private void Awake() {
+    protected virtual void Start() {
+        
+        // groundMask = LayerMask.GetMask("Default");
+    }
+
+    protected virtual void Awake() {
         animator = gameObject.GetComponent<Animation>();
         characterCollider = gameObject.GetComponent<CapsuleCollider>();
         _rigidbody = gameObject.GetComponent<Rigidbody>();
-
-        groundMask = LayerMask.GetMask("default");
         health = 100f;
     }
 
-    private void Update() {
+    protected virtual void Update() {
 
-        _isGrounded = characterCollider.ColliderCast(Vector3.zero, Vector3.down * 0.05f, out groundHit, 0.15f, groundMask);
+        _isGrounded = characterCollider.ColliderCast(characterCollider.transform.position, Vector3.down * 5f, out groundHit, 0.15f, groundMask);
 
         CharacterMovement();
 
+    }
+
+    protected virtual void FixedUpdate() {
+
+    }
+    private void UpdateBarLife(){
+        _healthImage.fillAmount = health;
     }
 
     protected abstract void CharacterMovement();

@@ -1,11 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
+[RequireComponent(typeof(NavMeshAgent))]
 public class Enemy : Character {
 
-    private Player targetedPlayer;
+    private NavMeshAgent navMeshAgent;
+    
     public EnemyState enemyState;
+
+
+    private Player targetedPlayer;
+
+    private float stunTimer = 0f;
+
+    public float wanderRadius = 10f;
+
 
     public override float movementSpeed {
         get {
@@ -20,8 +31,13 @@ public class Enemy : Character {
         }
     }
 
-    private void Update() {
 
+
+    protected override void Die() {
+        Debug.Log("Enemy Died !");
+    }
+
+    protected override void CharacterMovement() {
         switch (enemyState) {
             case EnemyState.Wander:
                 Wander();
@@ -35,63 +51,66 @@ public class Enemy : Character {
         }
     }
 
-
-    private float wanderTargetTimer = 0f;
-    private const float wonderTargetCooldown = 30f;
-    protected void Wander() {
-        if (wanderTargetTimer > wonderTargetCooldown) {
-            wanderTargetTimer = 0f;
-
-            // int index = Random.Range(0, Player.players.Count);
-            // targetedPlayer = Player.players[index];
+    private void AttackTargetedPlayer() {
+        float sqrDistance = (targetedPlayer.transform.position - transform.position).sqrMagnitude;
+        // Debug.Log(sqrDistance);
+        if (sqrDistance < 4f) {
+            targetedPlayer.health = Mathf.MoveTowards( targetedPlayer.health, 0, 25f * Time.deltaTime);
+            Debug.Log(targetedPlayer.health);
         }
-        wanderTargetTimer += Time.deltaTime;
+    }
 
 
-        // Move Towards targetPlayer
+    protected void Wander() {
+        const float spottingDistance = 5f;
+
+        foreach (Player player in Player.players) {
+            float distanceToPlayer;
+            if ((player.transform.position - characterCollider.transform.position).sqrMagnitude < Mathf.Pow(spottingDistance, 2f)) {
+                targetedPlayer = player;
+                enemyState = EnemyState.Chase;
+                return;
+            }
+        }
+        Vector3 newPos = RandomNavSphere(transform.position, wanderRadius, -1);
+        navMeshAgent.SetDestination(newPos);
+
+        // Guillaume ici
     }
 
     protected void Chase() {
-        // Move Towards targetPlayer
-        //if ((targetedPlayer.transform.position - transform.position).sqrMagnitude > 1f) {
-          //  Vector3 direction = (targetedPlayer.transform.position - transform.position).normalized;
-            //transform.position += direction * movementSpeed * Time.deltaTime;
-        //}
-        
-        // Attack targeted Player
-        if ((targetedPlayer.transform.position - transform.position).sqrMagnitude < 1f) {
-            targetedPlayer.health -= 25f * Time.deltaTime;
+        const float escapeDistance = 10f;
 
+        if ( !targetedPlayer.enabled || (targetedPlayer.transform.position - characterCollider.transform.position).sqrMagnitude > Mathf.Pow(escapeDistance, 2f) ) {
+            targetedPlayer = null;
+            enemyState = EnemyState.Wander;
+            return;
         }
+        navMeshAgent.SetDestination(targetedPlayer.transform.position); 
+        AttackTargetedPlayer();
     }
 
-    private float stunTimer = 0f;
     protected void Stunned() {
         stunTimer = Mathf.MoveTowards(stunTimer, 0f, Time.deltaTime);
-        
+        if (stunTimer == 0f)
+            enemyState = EnemyState.Wander;
     }
-
-
-
-
-    protected override void CharacterMovement() {
-        
-    }
-
-    protected override void Die() {
-        Debug.Log("You Died !");
-        // Player.players.Remove(targetedPlayer);
- 
-    }
-
-
+    
 
     public void Stun(float stunDuration) {
         stunTimer = stunDuration;
+        targetedPlayer = null;
         enemyState = EnemyState.Stunned;
-        
-
     }
+
+
+
+    protected override void Awake() {
+        base.Awake();
+        navMeshAgent = GetComponent<NavMeshAgent>();
+        enemyState = EnemyState.Wander;
+    }
+
 
 
     public enum EnemyState {
