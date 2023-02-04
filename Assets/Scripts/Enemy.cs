@@ -1,7 +1,10 @@
+using System;
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
+using UnityEngine.AI;  
+
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class Enemy : Character {
@@ -15,7 +18,11 @@ public class Enemy : Character {
 
     private float stunTimer = 0f;
 
-    public float wanderRadius = 10f;
+    private const float wanderTimeMax = 40f;
+    public float wanderTimer = 0f;
+
+    public float wanderRadius = 100f;
+
 
 
     public override float movementSpeed {
@@ -31,13 +38,12 @@ public class Enemy : Character {
         }
     }
 
-
-
     protected override void Die() {
         Debug.Log("Enemy Died !");
     }
 
     protected override void CharacterMovement() {
+        navMeshAgent.speed = movementSpeed;
         switch (enemyState) {
             case EnemyState.Wander:
                 Wander();
@@ -59,24 +65,48 @@ public class Enemy : Character {
             Debug.Log(targetedPlayer.health);
         }
     }
-
+     
+     public static Vector3 RandomNavSphere(Vector3 origin, float dist, int layermask) {
+        Vector3 randDirection = UnityEngine.Random.insideUnitSphere * dist;
+ 
+        randDirection += origin;
+ 
+        NavMeshHit navHit;
+ 
+        NavMesh.SamplePosition (randDirection, out navHit, dist, layermask);
+ 
+        return navHit.position;
+    }
 
     protected void Wander() {
         const float spottingDistance = 5f;
 
         foreach (Player player in Player.players) {
-            float distanceToPlayer;
-            if ((player.transform.position - characterCollider.transform.position).sqrMagnitude < Mathf.Pow(spottingDistance, 2f)) {
+            float sqrDistanceToPlayer = (player.transform.position - characterCollider.transform.position).sqrMagnitude;
+
+            // See Players
+            if ( sqrDistanceToPlayer < Mathf.Pow(spottingDistance, 2f)) {
                 targetedPlayer = player;
                 enemyState = EnemyState.Chase;
                 return;
             }
-        }
-        //Vector3 newPos = RandomNavSphere(transform.position, wanderRadius, -1);
-        //navMeshAgent.SetDestination(newPos);
 
-        // Guillaume ici
+            // Hear Players
+            if ( sqrDistanceToPlayer < Mathf.Pow(player.hearingDistance, 2f) ) {
+                navMeshAgent.SetDestination(player.transform.position);
+                Debug.Log($"Alerted by sound at {player.transform.position}, {sqrDistanceToPlayer} squared meters away.");
+            }
+        }
+
+        // Go to random position or alert Position
+        float sqrDistanceToDestination = (navMeshAgent.destination - characterCollider.transform.position).sqrMagnitude;
+        if (sqrDistanceToDestination < Mathf.Pow(2f, 2f)){
+            Vector3 newPos = RandomNavSphere(transform.position, wanderRadius, -1);
+            Debug.Log(newPos);
+            navMeshAgent.SetDestination(newPos);
+        }
     }
+    
 
     protected void Chase() {
         const float escapeDistance = 10f;
@@ -103,14 +133,29 @@ public class Enemy : Character {
         enemyState = EnemyState.Stunned;
     }
 
+    // private void OnAlert(Vector3 alertPosition) {
+    //     const float alertDistance = 30f;
 
+    //     float sqrDistanceToAlert = (alertPosition - characterCollider.transform.position).sqrMagnitude;
+    //     if (sqrDistanceToAlert < Mathf.Pow(alertDistance, 2f)) {
+    //         navMeshAgent.SetDestination(alertPosition);
+    //     }
+    // }
+
+
+    // private void OnEnable() {
+    //     onAlertEnemies += OnAlert;
+    // }
+
+    // private void OnDisable() {
+    //     onAlertEnemies -= OnAlert;
+    // }
 
     protected override void Awake() {
         base.Awake();
         navMeshAgent = GetComponent<NavMeshAgent>();
         enemyState = EnemyState.Wander;
     }
-
 
 
     public enum EnemyState {

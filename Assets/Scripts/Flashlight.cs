@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+
+using Unity.Netcode;
 using UnityEngine;
 
-public class Flashlight : MonoBehaviour {
+public class Flashlight : NetworkBehaviour {
 
     [SerializeField] protected Light light;
 
@@ -102,9 +104,6 @@ public class Flashlight : MonoBehaviour {
         lightAngle = Mathf.MoveTowards(lightAngle, normalLightSize, 25f * Time.deltaTime);
         light.spotAngle = lightAngle;
 
-        // Enable Flashlight when finished Charging
-        if (charging && !chargeInput)
-            ToggleFlashLight();
 
         // Charge Flashlight
         charging = chargeInput;
@@ -113,7 +112,7 @@ public class Flashlight : MonoBehaviour {
         }
             
         bool canToggle = true;
-        if (battery == 0 || charging){
+        if (battery == 0){
             flashLightOn = false;
             canToggle = false;
         }
@@ -124,8 +123,8 @@ public class Flashlight : MonoBehaviour {
 
         flashTargets.Clear();
 
-        light.enabled = flashLightOn;
-        if (!flashLightOn)
+        light.enabled = flashLightOn && !charging;
+        if (!light.enabled)
             return;
 
         UpdateFlashLightTargets();
@@ -139,7 +138,7 @@ public class Flashlight : MonoBehaviour {
 
     private void FixedUpdate() {
         
-        light.transform.rotation = forwardRotation;
-        light.transform.position = originPosition + transform.rotation * new Vector3(0.75f, 0, 0.3f);
+        transform.rotation = forwardRotation * Quaternion.AngleAxis(90f, Vector3.right);
+        // transform.position = originPosition + transform.rotation * new Vector3(0.75f, 0, 0.3f);
     }
 }

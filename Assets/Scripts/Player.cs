@@ -9,37 +9,73 @@ public class Player : Character {
 
     public static List<Player> players = new List<Player>();
 
+
+
+    [SerializeField] private GameObject cameraPrefab;
+
     private Vector3 _totalMovement = Vector3.zero;
+    public float maxEndurance= 10;
+    [SerializeField] private float endurance= 10;
 
     public Vector3 jumpDirection;
 
     private bool sprinting = false;
 
 
+    public float hearingDistance {
+        get {
+            if (flashlight.charging)
+                return 40f;
+
+            if (sprinting)
+                return 15f;
+
+            return 0;
+        }
+    }
+
+
     [SerializeField] protected CameraController cameraController;
 
-    [SerializeField] private Flashlight flashLight;
+    [SerializeField] private Flashlight flashlight;
 
 
 
     public override float movementSpeed {
         get {
+            if (flashlight.charging)
+                return 1f;
+
             return sprinting ? 6f : 3f;
         }
+    }
+
+    public override void OnNetworkSpawn() {
+        if (IsOwner) {
+            GameObject cameraObject = GameObject.Instantiate(cameraPrefab);
+            cameraController = cameraObject.GetComponent<CameraController>();
+            cameraController.SetTarget(this);
+        }
+        // if (!IsOwner) {
+        //     Destroy(flashlight);
+        //     // Destroy(cameraController.gameObject);
+        //     // Destroy(this);
+        // }
     }
 
 
 
     protected override void CharacterMovement() {
 
-        flashLight.PointFlashLight(cameraController.camera.transform.rotation);
-        flashLight.chargeInput = Input.GetKey(KeyCode.C);
-        flashLight.toggleInput = Input.GetKeyDown(KeyCode.L);
-        flashLight.flashInput = Input.GetKeyDown(KeyCode.F);
-        flashLight.originPosition = characterCollider.transform.position;
-
-        if (flashLight.charging || !enabled)
+        if (!IsOwner || !enabled)
             return;
+
+        flashlight.PointFlashLight(cameraController.camera.transform.rotation);
+        flashlight.chargeInput = Input.GetMouseButton(1);
+        flashlight.toggleInput = Input.GetMouseButtonDown(0);
+        flashlight.flashInput = Input.GetKeyDown(KeyCode.F);
+        flashlight.originPosition = characterCollider.transform.position;
+
 
         PlayerMovement();
 
@@ -56,6 +92,7 @@ public class Player : Character {
     }
 
     private void PlayerMovement() {
+
         bool forward = Input.GetKey(KeyCode.Z);
         bool back = Input.GetKey(KeyCode.S);
         bool right = Input.GetKey(KeyCode.D);
@@ -64,6 +101,19 @@ public class Player : Character {
 
         float movement = forward ? 1f : back ? -0.75f : 0f;
         float strafe = right ? 1f : left ? -1f : 0f;
+
+        // if (Input.GetKey(KeyCode.LeftShift)&& endurance >0){
+        //     // while(endurance>0){
+        //     //     endurance-=1;
+        //     //     endurance= Mathf.MoveTowards(battery, 0, Time.deltaTime);
+        //     // }
+        // }
+        //if (!Input.GetKey(KeyCode.LeftShift)){
+            // while(endurance<maxEndurence){
+            //      endurance+=1;
+            //      endurance= Mathf.MoveTowards(battery, 0, Time.deltaTime);
+            //}
+            //}
 
 
         Vector3 relativeDirection = new Vector3(strafe, 0f, movement);

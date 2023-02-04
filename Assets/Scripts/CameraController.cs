@@ -23,34 +23,10 @@ public class CameraController : MonoBehaviour {
     [SerializeField] private Character target;
 
 
-    // private void OnEnable(){
-    //     SetCurrent();
-    // }
-
-    // private void Reset() => Awake();
-    private void Awake() {
-        camera = Camera.main;
-        cameraData = camera.GetComponent<UniversalAdditionalCameraData>();
-
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+    public void SetTarget(Character newTarget) {
+        target = newTarget;
     }
 
-    private void Update(){
-
-
-        // if (PlayerEntityController.current?.entity == null) return;
-
-        UpdateCameraRotation();
-
-        UpdateCameraDistance();
-    }
-
-    private void FixedUpdate(){
-        // if (PlayerEntityController.current?.entity == null) return;
-
-        UpdateCameraPosition();
-    }
 
     private Vector2 mousePosition;
     // private Vector2 mouseDelta;
@@ -99,6 +75,30 @@ public class CameraController : MonoBehaviour {
         Vector3 finalPos = delayedPosition + camPosition.normalized * camDistance;
         
         transform.position = finalPos;
+    }
+
+    private void Awake() {
+        camera = Camera.main;
+        cameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    private void Update(){
+
+
+        // if (PlayerEntityController.current?.entity == null) return;
+
+        UpdateCameraRotation();
+
+        UpdateCameraDistance();
+    }
+
+    private void FixedUpdate(){
+        // if (PlayerEntityController.current?.entity == null) return;
+
+        UpdateCameraPosition();
     }
 
 }

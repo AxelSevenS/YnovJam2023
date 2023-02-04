@@ -1,13 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
+
+using Unity.Netcode;
 using UnityEngine;
-using SevenGame.Utility;
 using UnityEngine.UI;
+
+using SevenGame.Utility;
 
 [RequireComponent(typeof(CapsuleCollider))]
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(Animator))]
-public abstract class Character : MonoBehaviour {
+
+public abstract class Character : NetworkBehaviour {
 
     protected CapsuleCollider characterCollider;
     protected Rigidbody _rigidbody;
@@ -24,8 +28,6 @@ public abstract class Character : MonoBehaviour {
     protected RaycastHit groundHit;
 
     public abstract float movementSpeed { get; }
-    // public abstract float runSpeed;
-    // public abstract float turnSpeed;
     
 
 
