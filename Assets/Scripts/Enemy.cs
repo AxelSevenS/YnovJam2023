@@ -29,9 +29,9 @@ public class Enemy : Character {
         get {
             switch (enemyState) {
                 case EnemyState.Wander:
-                    return 1f;
+                    return 1.5f;
                 case EnemyState.Chase:
-                    return 3f;
+                    return 6.5f;
                 default:
                     return 0f;
             }
@@ -79,7 +79,7 @@ public class Enemy : Character {
     }
 
     protected void Wander() {
-        const float spottingDistance = 5f;
+        const float spottingDistance = 10f;
 
         foreach (Player player in Player.players) {
             float sqrDistanceToPlayer = (player.transform.position - characterCollider.transform.position).sqrMagnitude;
@@ -94,7 +94,6 @@ public class Enemy : Character {
             // Hear Players
             if ( sqrDistanceToPlayer < Mathf.Pow(player.hearingDistance, 2f) ) {
                 navMeshAgent.SetDestination(player.transform.position);
-                Debug.Log($"Alerted by sound at {player.transform.position}, {sqrDistanceToPlayer} squared meters away.");
             }
         }
 
@@ -109,7 +108,7 @@ public class Enemy : Character {
     
 
     protected void Chase() {
-        const float escapeDistance = 10f;
+        const float escapeDistance = 15f;
 
         if ( !targetedPlayer.enabled || (targetedPlayer.transform.position - characterCollider.transform.position).sqrMagnitude > Mathf.Pow(escapeDistance, 2f) ) {
             targetedPlayer = null;

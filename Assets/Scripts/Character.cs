@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UI;
 
 using SevenGame.Utility;
 
@@ -21,8 +20,8 @@ public abstract class Character : NetworkBehaviour {
 
     public static LayerMask groundMask = 1;
 
-    private float _health = 100f;
-    [SerializeField] private Image _healthImage;
+    private float _health = maxHealth;
+    protected const float maxHealth = 100f;
 
     [SerializeField] protected bool _isGrounded = false;
     protected RaycastHit groundHit;
@@ -31,7 +30,7 @@ public abstract class Character : NetworkBehaviour {
     
 
 
-    public float health {
+    public virtual float health {
         get { return _health; }
         set {
             _health = value;
@@ -71,9 +70,6 @@ public abstract class Character : NetworkBehaviour {
 
     protected virtual void FixedUpdate() {
 
-    }
-    private void UpdateBarLife(){
-        _healthImage.fillAmount = health;
     }
 
     protected abstract void CharacterMovement();

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 using SevenGame.Utility;
 
@@ -12,14 +13,39 @@ public class Player : Character {
 
 
     [SerializeField] private GameObject cameraPrefab;
+    [SerializeField] private GameObject uiPrefab;
 
     private Vector3 _totalMovement = Vector3.zero;
-    public float maxEndurance= 10;
-    [SerializeField] private float endurance= 10;
 
-    public Vector3 jumpDirection;
+    protected const float maxStamina = 10f;
+    [SerializeField] private float _stamina = maxStamina;
+
+    // public Vector3 jumpDirection;
 
     private bool sprinting = false;
+
+
+    public override float health {
+        get {
+            return base.health;
+        }
+        set {
+            base.health = value;
+            if (healthImage != null)
+                healthImage.fillAmount = health / maxHealth;
+        }
+    }
+
+    public virtual float stamina {
+        get {
+            return _stamina;
+        }
+        set {
+            _stamina = value;
+            if (staminaImage != null)
+                staminaImage.fillAmount = stamina / maxStamina;
+        }
+    }
 
 
     public float hearingDistance {
@@ -35,6 +61,8 @@ public class Player : Character {
     }
 
 
+    [SerializeField] protected Image healthImage;
+    [SerializeField] protected Image staminaImage;
     [SerializeField] protected CameraController cameraController;
 
     [SerializeField] private Flashlight flashlight;
@@ -55,6 +83,10 @@ public class Player : Character {
             GameObject cameraObject = GameObject.Instantiate(cameraPrefab);
             cameraController = cameraObject.GetComponent<CameraController>();
             cameraController.SetTarget(this);
+
+            GameObject uiObject = GameObject.Instantiate(uiPrefab);
+            healthImage = uiObject.transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<Image>();
+            staminaImage = uiObject.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<Image>();
         }
         // if (!IsOwner) {
         //     Destroy(flashlight);
@@ -79,11 +111,11 @@ public class Player : Character {
 
         PlayerMovement();
 
-        bool jumping = Input.GetKeyDown(KeyCode.Space);
+        // bool jumping = Input.GetKeyDown(KeyCode.Space);
         
-        if (jumping && _isGrounded){
-            _rigidbody.AddForce(jumpDirection, ForceMode.Impulse);
-        }
+        // if (jumping && _isGrounded){
+        //     _rigidbody.AddForce(jumpDirection, ForceMode.Impulse);
+        // }
     }
 
 
@@ -97,26 +129,16 @@ public class Player : Character {
         bool back = Input.GetKey(KeyCode.S);
         bool right = Input.GetKey(KeyCode.D);
         bool left = Input.GetKey(KeyCode.Q);
-        sprinting = Input.GetKey(KeyCode.LeftShift);
+        bool sprintInput = Input.GetKey(KeyCode.LeftShift);
 
-        float movement = forward ? 1f : back ? -0.75f : 0f;
+        float movement = forward ? 1f : back ? -1f : 0f;
         float strafe = right ? 1f : left ? -1f : 0f;
 
-        // if (Input.GetKey(KeyCode.LeftShift)&& endurance >0){
-        //     // while(endurance>0){
-        //     //     endurance-=1;
-        //     //     endurance= Mathf.MoveTowards(battery, 0, Time.deltaTime);
-        //     // }
-        // }
-        //if (!Input.GetKey(KeyCode.LeftShift)){
-            // while(endurance<maxEndurence){
-            //      endurance+=1;
-            //      endurance= Mathf.MoveTowards(battery, 0, Time.deltaTime);
-            //}
-            //}
+        sprinting = sprintInput && stamina > 0f;
+        stamina = Mathf.MoveTowards(stamina, sprinting ? 0f : maxStamina, Time.deltaTime);
 
 
-        Vector3 relativeDirection = new Vector3(strafe, 0f, movement);
+        Vector3 relativeDirection = new Vector3(strafe, 0f, movement).normalized;
 
         Vector3 groundUp = Vector3.up;
         Vector3 groundForward = Vector3.Cross(cameraController.camera.transform.right, groundUp);

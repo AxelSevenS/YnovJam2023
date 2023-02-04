@@ -109,6 +109,8 @@ GameObject:
   - component: {fileID: 4787321665493432238}
   - component: {fileID: 4787321665493432233}
   - component: {fileID: 1215884937119369991}
+  - component: {fileID: 5487202924491791979}
+  - component: {fileID: 8852893230242623155}
   m_Layer: 0
   m_Name: Flashlight
   m_TagString: Untagged
@@ -195,12 +197,139 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   light: {fileID: 6222265418383777309}
+  flashlightDeadClip: {fileID: 8300000, guid: e3cfe875e74676b4ba5c6375bb3f2576, type: 3}
+  flashlightFlashClip: {fileID: 8300000, guid: 3b6e3fdb845aa9e49b3c203b010bd802, type: 3}
+  flashlightToggleClip: {fileID: 8300000, guid: 29862e5187e78404bbf685eb83aa92ca, type: 3}
+  flashlightChargeClip: {fileID: 8300000, guid: 98026415c5dfe4b48b89140b41138544, type: 3}
+  audioSource: {fileID: 8852893230242623155}
   charging: 0
   battery: 0
   chargeInput: 0
   toggleInput: 0
   flashInput: 0
   originPosition: {x: 0, y: 0, z: 0}
+--- !u!114 &5487202924491791979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4787321665493432234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df2868252ab5c4d1da357e8f11f1b524, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  InLocalSpace: 0
+  Interpolate: 1
+--- !u!82 &8852893230242623155
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4787321665493432234}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &6222265418208747699
 GameObject:
   m_ObjectHideFlags: 0
@@ -256,12 +385,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9c1ecd4e56691e49b1172a978f525e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _healthImage: {fileID: 0}
   _isGrounded: 0
   cameraPrefab: {fileID: 5996377996691483027, guid: ef5be711a05a12c48846a7c2434374ee, type: 3}
-  maxEndurance: 30
-  endurance: 30
-  jumpDirection: {x: 0, y: 15, z: 0}
+  uiPrefab: {fileID: 272739673222916372, guid: 0033dfc07b9b72a45b0649ae1944d57b, type: 3}
+  _stamina: 10
+  healthImage: {fileID: 0}
+  staminaImage: {fileID: 0}
   cameraController: {fileID: 0}
   flashlight: {fileID: 1215884937119369991}
 --- !u!54 &6222265418208747709

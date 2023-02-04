@@ -8,6 +8,17 @@ public class Flashlight : NetworkBehaviour {
 
     [SerializeField] protected Light light;
 
+    [Space(15)]
+
+    [SerializeField] private AudioClip flashlightDeadClip;
+    [SerializeField] private AudioClip flashlightFlashClip;
+    [SerializeField] private AudioClip flashlightToggleClip;
+    [SerializeField] private AudioClip flashlightChargeClip;
+
+    [SerializeField] private AudioSource audioSource;
+
+    [Space(15)]
+
     private Quaternion forwardRotation = Quaternion.identity;
 
     private bool flashLightOn = false;
@@ -27,10 +38,10 @@ public class Flashlight : NetworkBehaviour {
     private float lightAngle = normalLightSize;
 
     private const int maxFlashCount = 5;
-    private int flashCount = 5;
+    private int flashCount = maxFlashCount;
 
-    [SerializeField] private float battery = 0;
     private const float maxBattery = 30f;
+    [SerializeField] private float battery = maxBattery;
 
     public bool chargeInput = false;
     public bool toggleInput = false;
@@ -61,9 +72,11 @@ public class Flashlight : NetworkBehaviour {
     public void ActivateFlash(){
         if (flashCount > 0){
 
-            lightIntensity = 35f;
+            lightIntensity = 50f;
             lightAngle = 150f;
-            // Play Flash Sound
+            lightRange = 20f;
+            audioSource.clip = flashlightFlashClip;
+            audioSource.Play();
 
             foreach (Enemy enemy in flashTargets) {
                 enemy?.Stun(5f);
@@ -72,15 +85,17 @@ public class Flashlight : NetworkBehaviour {
             flashCount -= 1;
         }
         else{
-            // Play Broken Light Sound
-
+            audioSource.clip = flashlightDeadClip;
+            audioSource.Play();
             Debug.Log("No more flash");
         }
     }
 
     public void ToggleFlashLight() {
         flashLightOn = !flashLightOn;
-        // Play Click Sound
+
+        audioSource.clip = flashlightToggleClip;
+        audioSource.Play();
     }
 
     private void Start() {
@@ -106,6 +121,12 @@ public class Flashlight : NetworkBehaviour {
 
 
         // Charge Flashlight
+        if (!charging && chargeInput) {
+            audioSource.clip = flashlightChargeClip;
+            audioSource.Play();
+        } else if (charging && !chargeInput) {
+            audioSource.Stop();
+        }
         charging = chargeInput;
         if (charging) {
             battery = Mathf.MoveTowards(battery, maxBattery, maxBattery / flashLightChargeTime * Time.deltaTime);

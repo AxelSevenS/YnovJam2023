@@ -1,8 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-//[RequireComponent(typeof(AudioSource))]
-//[RequireComponent(typeof(AudioSource))]
+
 public class DeadLeaves: MonoBehaviour {
     //private AudioSource TriggerSound;
     //[SerializeField] private GameObject deadleaf;
