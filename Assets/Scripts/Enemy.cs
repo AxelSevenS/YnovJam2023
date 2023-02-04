@@ -72,8 +72,8 @@ public class Enemy : Character {
                 return;
             }
         }
-        Vector3 newPos = RandomNavSphere(transform.position, wanderRadius, -1);
-        navMeshAgent.SetDestination(newPos);
+        //Vector3 newPos = RandomNavSphere(transform.position, wanderRadius, -1);
+        //navMeshAgent.SetDestination(newPos);
 
         // Guillaume ici
     }
