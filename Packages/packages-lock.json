@@ -1,36 +1,11 @@
 {
   "dependencies": {
-    "com.seven.easysplines": {
-      "version": "https://github.com/AxelSevenS/EasySplines.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.seven.utility": "0.0.1"
-      },
-      "hash": "323da32564cc721a77c838b3afd806d2dee60993"
-    },
-    "com.seven.saving-system": {
-      "version": "https://github.com/AxelSevenS/SaveSystem.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "fdcd2bc1401eb34a79832e02303aa16308be0d3e"
-    },
-    "com.seven.scribe": {
-      "version": "https://github.com/AxelSevenS/Scribe.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.seven.utility": "0.0.1"
-      },
-      "hash": "924039338721fffef06ec493d783326b19eac7bc"
-    },
     "com.seven.utility": {
       "version": "https://github.com/AxelSevenS/Utility-Package.git",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "9ef5bb739e01c7689b45315b52332d042cadd55b"
+      "hash": "25ca0d3964597e312281a172fa7e87be5e7e2d8d"
     },
     "com.unity.burst": {
       "version": "1.7.3",

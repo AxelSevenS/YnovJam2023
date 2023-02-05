@@ -12,6 +12,8 @@ public class Enemy : Character {
     private NavMeshAgent navMeshAgent;
     
     public EnemyState enemyState;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip screamClip;
 
 
     private Player targetedPlayer;
@@ -24,6 +26,9 @@ public class Enemy : Character {
     public float wanderRadius = 100f;
 
 
+    public float slowness = 1f;
+
+
 
     public override float movementSpeed {
         get {
@@ -31,9 +36,9 @@ public class Enemy : Character {
                 case EnemyState.Wander:
                     return 3.5f;
                 case EnemyState.Chase:
-                    return 6.5f;
+                    return 6.5f * slowness;
                 default:
-                    return 0f;
+                    return 12f;
             }
         }
     }
@@ -44,6 +49,7 @@ public class Enemy : Character {
 
     protected override void CharacterMovement() {
         navMeshAgent.speed = movementSpeed;
+        slowness = Mathf.MoveTowards(slowness, 1f, 0.5f * Time.deltaTime);
         switch (enemyState) {
             case EnemyState.Wander:
                 Wander();
@@ -71,9 +77,7 @@ public class Enemy : Character {
  
         randDirection += origin;
  
-        NavMeshHit navHit;
- 
-        NavMesh.SamplePosition (randDirection, out navHit, dist, layermask);
+        NavMesh.SamplePosition (randDirection, out NavMeshHit navHit, dist, layermask);
  
         return navHit.position;
     }
@@ -101,7 +105,6 @@ public class Enemy : Character {
         float sqrDistanceToDestination = (navMeshAgent.destination - characterCollider.transform.position).sqrMagnitude;
         if (sqrDistanceToDestination < Mathf.Pow(2f, 2f)){
             Vector3 newPos = RandomNavSphere(transform.position, wanderRadius, -1);
-            Debug.Log(newPos);
             navMeshAgent.SetDestination(newPos);
         }
     }
@@ -127,6 +130,9 @@ public class Enemy : Character {
 
     public void Stun(float stunDuration) {
         stunTimer = stunDuration;
+        NavMesh.SamplePosition(transform.position - transform.forward * 30f, out NavMeshHit navHit, 30f, -1);
+        navMeshAgent.SetDestination(navHit.position);
+        audioSource.PlayOneShot(screamClip);
         targetedPlayer = null;
         enemyState = EnemyState.Stunned;
     }

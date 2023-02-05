@@ -150,6 +150,10 @@ public class Flashlight : NetworkBehaviour {
 
         UpdateFlashLightTargets();
 
+        foreach (Enemy enemy in flashTargets) {
+            enemy.slowness = 0.5f;
+        }
+
         if (flashInput){
             ActivateFlash();
         }

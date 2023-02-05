@@ -16,6 +16,21 @@ public class SlabsController : MonoBehaviour {
     private int progress = -1;
 
 
+    private static bool _completed = false;
+
+    public static bool completed {
+        get {
+            return _completed;
+        }
+        private set {
+            _completed = value;
+            if (MusicPlatesController.completed && completed) {
+                GameController.instance.CompletePuzzles();
+            }
+        }
+    }
+
+
     private void OnEnable() {
         player1Slab1.onPlayerStep += Player1Slab1Step;
         player1Slab2.onPlayerStep += Player1Slab2Step;
@@ -140,7 +155,7 @@ public class SlabsController : MonoBehaviour {
                 player2Slab1.renderer.material.color = Color.green;
                 player2Slab2.renderer.material.color = Color.green;
                 player2Slab3.renderer.material.color = Color.green;
-                Debug.Log("Done");
+                completed = true;
                 break;
         }
 

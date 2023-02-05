@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-using SevenGame.Utility;
     
 public class CameraController : MonoBehaviour {
 
@@ -36,10 +35,10 @@ public class CameraController : MonoBehaviour {
 
 
     private void UpdateCameraDistance(){
-        Vector3 cameraRelativePosition = new Vector3(1.2f, 0.65f, -1.75f);
+        Vector3 cameraRelativePosition = new Vector3(1.2f, 0.65f, -2.75f);
         Vector3 cameraTargetVector = new Vector3( cameraRelativePosition.x, cameraRelativePosition.y, cameraRelativePosition.z * distanceToPlayer -additionalDistance);
 
-        cameraVector = Vector3.Slerp(cameraVector, cameraTargetVector, 3f * GameUtility.timeDelta);
+        cameraVector = Vector3.Slerp(cameraVector, cameraTargetVector, 3f * Time.deltaTime);
     }
 
     private void UpdateCameraPosition(){

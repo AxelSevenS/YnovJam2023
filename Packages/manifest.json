@@ -1,8 +1,5 @@
 {
   "dependencies": {
-    "com.seven.easysplines": "https://github.com/AxelSevenS/EasySplines.git",
-    "com.seven.saving-system": "https://github.com/AxelSevenS/SaveSystem.git",
-    "com.seven.scribe": "https://github.com/AxelSevenS/Scribe.git",
     "com.seven.utility": "https://github.com/AxelSevenS/Utility-Package.git",
     "com.unity.collab-proxy": "1.17.7",
     "com.unity.feature.development": "1.0.1",

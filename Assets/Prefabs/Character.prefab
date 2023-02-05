@@ -374,6 +374,8 @@ MonoBehaviour:
   _isGrounded: 0
   uiPrefab: {fileID: 272739673222916372, guid: 0033dfc07b9b72a45b0649ae1944d57b, type: 3}
   _stamina: 10
+  audioSource: {fileID: 4787321665847084022}
+  tiredClip: {fileID: 8300000, guid: 9a1f9701698bdec4c989ea8341d7b912, type: 3}
   healthImage: {fileID: 0}
   staminaImage: {fileID: 0}
   cameraController: {fileID: 0}

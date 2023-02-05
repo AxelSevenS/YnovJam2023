@@ -23,6 +23,9 @@ public class Player : Character {
     [SerializeField] private float _stamina = maxStamina;
     private bool tiredOut = false;
 
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip tiredClip;
+
     // public Vector3 jumpDirection;
 
     private bool sprinting = false;
@@ -66,7 +69,7 @@ public class Player : Character {
 
     [SerializeField] protected Image healthImage;
     [SerializeField] protected Image staminaImage;
-    [SerializeField] protected CameraController cameraController;
+    public CameraController cameraController;
 
     [SerializeField] private Flashlight flashlight;
 
@@ -90,6 +93,12 @@ public class Player : Character {
             GameObject uiObject = GameObject.Instantiate(uiPrefab);
             healthImage = uiObject.transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<Image>();
             staminaImage = uiObject.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<Image>();
+        }
+
+        if (IsServer) {
+            characterCollider.transform.position = GameObject.FindGameObjectWithTag("Respawn").transform.position;
+        } else {
+            characterCollider.transform.position = players[0].transform.position;
         }
     }
 
@@ -156,7 +165,7 @@ public class Player : Character {
         stamina = Mathf.MoveTowards(stamina, sprinting ? 0f : maxStamina, Time.deltaTime);
         if (stamina == 0 && !tiredOut) {
             tiredOut = true;
-            // Play Tired sound
+            audioSource.PlayOneShot(tiredClip);
         } else if (stamina == maxStamina && tiredOut) {
             tiredOut = false;
         }
@@ -178,6 +187,7 @@ public class Player : Character {
         players.Remove(this);
         if (players.Count < 1) {
             Debug.Log("Game Over");
+            Application.Quit();
         }
     }
 
