@@ -12,13 +12,16 @@ public class Player : Character {
 
 
 
-    [SerializeField] private GameObject cameraPrefab;
+    // [SerializeField] private GameObject cameraPrefab;
     [SerializeField] private GameObject uiPrefab;
 
     private Vector3 _totalMovement = Vector3.zero;
+    private Vector3 relativeDirection = Vector3.zero;
+    private Quaternion cameraRotation = Quaternion.identity;
 
     protected const float maxStamina = 10f;
     [SerializeField] private float _stamina = maxStamina;
+    private bool tiredOut = false;
 
     // public Vector3 jumpDirection;
 
@@ -51,12 +54,12 @@ public class Player : Character {
     public float hearingDistance {
         get {
             if (flashlight.charging)
-                return 40f;
+                return 200f;
 
             if (sprinting)
-                return 15f;
+                return 80f;
 
-            return 0;
+            return 30f;
         }
     }
 
@@ -80,42 +83,26 @@ public class Player : Character {
 
     public override void OnNetworkSpawn() {
         if (IsOwner) {
-            GameObject cameraObject = GameObject.Instantiate(cameraPrefab);
-            cameraController = cameraObject.GetComponent<CameraController>();
+            GameObject cameraObject = Camera.main.gameObject;
+            cameraController = cameraObject.AddComponent<CameraController>();
             cameraController.SetTarget(this);
 
             GameObject uiObject = GameObject.Instantiate(uiPrefab);
             healthImage = uiObject.transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<Image>();
             staminaImage = uiObject.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<Image>();
         }
-        // if (!IsOwner) {
-        //     Destroy(flashlight);
-        //     // Destroy(cameraController.gameObject);
-        //     // Destroy(this);
-        // }
     }
 
 
 
     protected override void CharacterMovement() {
 
-        if (!IsOwner || !enabled)
+        if (!enabled)
             return;
 
-        flashlight.PointFlashLight(cameraController.camera.transform.rotation);
-        flashlight.chargeInput = Input.GetMouseButton(1);
-        flashlight.toggleInput = Input.GetMouseButtonDown(0);
-        flashlight.flashInput = Input.GetKeyDown(KeyCode.F);
-        flashlight.originPosition = characterCollider.transform.position;
-
+        PlayerControls();
 
         PlayerMovement();
-
-        // bool jumping = Input.GetKeyDown(KeyCode.Space);
-        
-        // if (jumping && _isGrounded){
-        //     _rigidbody.AddForce(jumpDirection, ForceMode.Impulse);
-        // }
     }
 
 
@@ -124,6 +111,37 @@ public class Player : Character {
     }
 
     private void PlayerMovement() {
+
+        Quaternion forwardRotation = relativeDirection.sqrMagnitude != 0f ? Quaternion.LookRotation(relativeDirection) : Quaternion.identity;
+        transform.rotation = Quaternion.Slerp(transform.rotation, cameraRotation * forwardRotation, 5f * Time.deltaTime);
+
+        if (relativeDirection.sqrMagnitude == 0)
+            return;
+
+
+        Vector3 movementDirection = cameraRotation * relativeDirection;
+
+        if (isGrounded) {
+            Vector3 rightOfDirection = Vector3.Cross(movementDirection, groundHit.normal).normalized;
+            Vector3 directionConstrainedToGround = Vector3.Cross(groundHit.normal, rightOfDirection).normalized;
+
+            movementDirection = directionConstrainedToGround * movementDirection.magnitude;
+        }
+
+        _totalMovement = movementDirection;
+    }
+
+    private void PlayerControls() {
+        if (!IsOwner)
+            return;
+
+
+        flashlight.PointFlashLight(cameraController.camera.transform.rotation);
+        flashlight.chargeInput = Input.GetMouseButton(1);
+        flashlight.toggleInput = Input.GetMouseButtonDown(0);
+        flashlight.flashInput = Input.GetKeyDown(KeyCode.F);
+        flashlight.originPosition = characterCollider.transform.position;
+
 
         bool forward = Input.GetKey(KeyCode.Z);
         bool back = Input.GetKey(KeyCode.S);
@@ -134,40 +152,19 @@ public class Player : Character {
         float movement = forward ? 1f : back ? -1f : 0f;
         float strafe = right ? 1f : left ? -1f : 0f;
 
-        sprinting = sprintInput && stamina > 0f;
+        sprinting = sprintInput && !tiredOut && !flashlight.chargeInput;
         stamina = Mathf.MoveTowards(stamina, sprinting ? 0f : maxStamina, Time.deltaTime);
-
-
-        Vector3 relativeDirection = new Vector3(strafe, 0f, movement).normalized;
-
-        Vector3 groundUp = Vector3.up;
-        Vector3 groundForward = Vector3.Cross(cameraController.camera.transform.right, groundUp);
-        Quaternion forwardRotation = relativeDirection.sqrMagnitude != 0f ? Quaternion.LookRotation(relativeDirection) : Quaternion.identity;
-
-        Quaternion cameraRotation = Quaternion.LookRotation(groundForward, groundUp);
-
-        transform.rotation = Quaternion.Slerp(transform.rotation, cameraRotation * forwardRotation, 5f * Time.deltaTime);
-
-        if (relativeDirection.sqrMagnitude == 0)
-            return;
-
-
-        Vector3 movementDirection = cameraRotation * relativeDirection;
-
-        if ( isGrounded ) {
-            Vector3 rightOfDirection = Vector3.Cross(movementDirection, groundHit.normal).normalized;
-            Vector3 directionConstrainedToGround = Vector3.Cross(groundHit.normal, rightOfDirection).normalized;
-
-            movementDirection = directionConstrainedToGround * movementDirection.magnitude;
+        if (stamina == 0 && !tiredOut) {
+            tiredOut = true;
+            // Play Tired sound
+        } else if (stamina == maxStamina && tiredOut) {
+            tiredOut = false;
         }
 
-        _totalMovement = movementDirection;
-    }
+        relativeDirection = new Vector3(strafe, 0f, movement).normalized;Vector3 groundUp = Vector3.up;
 
-    private void Flashlight() {
-
-        
-
+        Vector3 groundForward = Vector3.Cross(cameraController.camera.transform.right, groundUp);
+        cameraRotation = Quaternion.LookRotation(groundForward, groundUp);
     }
 
     
@@ -179,6 +176,9 @@ public class Player : Character {
 
     private void OnDisable() {
         players.Remove(this);
+        if (players.Count < 1) {
+            Debug.Log("Game Over");
+        }
     }
 
     protected override void Start() {

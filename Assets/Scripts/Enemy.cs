@@ -29,7 +29,7 @@ public class Enemy : Character {
         get {
             switch (enemyState) {
                 case EnemyState.Wander:
-                    return 1.5f;
+                    return 3.5f;
                 case EnemyState.Chase:
                     return 6.5f;
                 default:
@@ -124,31 +124,12 @@ public class Enemy : Character {
         if (stunTimer == 0f)
             enemyState = EnemyState.Wander;
     }
-    
 
     public void Stun(float stunDuration) {
         stunTimer = stunDuration;
         targetedPlayer = null;
         enemyState = EnemyState.Stunned;
     }
-
-    // private void OnAlert(Vector3 alertPosition) {
-    //     const float alertDistance = 30f;
-
-    //     float sqrDistanceToAlert = (alertPosition - characterCollider.transform.position).sqrMagnitude;
-    //     if (sqrDistanceToAlert < Mathf.Pow(alertDistance, 2f)) {
-    //         navMeshAgent.SetDestination(alertPosition);
-    //     }
-    // }
-
-
-    // private void OnEnable() {
-    //     onAlertEnemies += OnAlert;
-    // }
-
-    // private void OnDisable() {
-    //     onAlertEnemies -= OnAlert;
-    // }
 
     protected override void Awake() {
         base.Awake();

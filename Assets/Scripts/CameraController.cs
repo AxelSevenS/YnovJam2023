@@ -8,14 +8,15 @@ using SevenGame.Utility;
     
 public class CameraController : MonoBehaviour {
 
-    public Camera camera;
+    public new Camera camera;
     public UniversalAdditionalCameraData cameraData;
 
-    // private Quaternion entityRotation;
     private Vector3 delayedPosition;
     private Vector3 cameraVector;
     [SerializeField]private float distanceToPlayer = 1f; 
     [SerializeField]private float fov = 90f;
+
+    private Vector2 mousePosition;
 
     private Vector3 velocity = Vector3.zero;
     private float additionalDistance = 0f;
@@ -28,17 +29,13 @@ public class CameraController : MonoBehaviour {
     }
 
 
-    private Vector2 mousePosition;
-    // private Vector2 mouseDelta;
     private void UpdateCameraRotation() {
         Vector2 mouseDelta = new Vector2( Input.GetAxis("Mouse X") / 2.5f, -Input.GetAxis("Mouse Y") / 2.5f );
-        // mousePosition = Input.mousePosition;
         mousePosition = new Vector2( mousePosition.x+mouseDelta.x, Mathf.Clamp(mousePosition.y+mouseDelta.y, -90, 90) );
     }
 
 
     private void UpdateCameraDistance(){
-        // Vector3 cameraRelativePosition = PlayerEntityController.current.entity.state.cameraPosition;
         Vector3 cameraRelativePosition = new Vector3(1.2f, 0.65f, -1.75f);
         Vector3 cameraTargetVector = new Vector3( cameraRelativePosition.x, cameraRelativePosition.y, cameraRelativePosition.z * distanceToPlayer -additionalDistance);
 
@@ -46,9 +43,6 @@ public class CameraController : MonoBehaviour {
     }
 
     private void UpdateCameraPosition(){
-        // entityRotation = Quaternion.Slerp( entityRotation, target.transform.rotation, 4f * GameUtility.timeDelta );
-        
-        // transform.rotation = PlayerEntityController.current.worldCameraRotation;
 
         Quaternion mouseRotation = Quaternion.AngleAxis(mousePosition.x, Vector3.up) * Quaternion.AngleAxis(mousePosition.y, Vector3.right);
         transform.rotation = mouseRotation;
@@ -87,16 +81,12 @@ public class CameraController : MonoBehaviour {
 
     private void Update(){
 
-
-        // if (PlayerEntityController.current?.entity == null) return;
-
         UpdateCameraRotation();
 
         UpdateCameraDistance();
     }
 
     private void FixedUpdate(){
-        // if (PlayerEntityController.current?.entity == null) return;
 
         UpdateCameraPosition();
     }
