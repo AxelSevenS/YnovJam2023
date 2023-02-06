@@ -92,10 +92,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4787321665493432235}
+  - component: {fileID: 1215884937119369991}
   - component: {fileID: 4787321665493432238}
   - component: {fileID: 4787321665493432233}
-  - component: {fileID: 1215884937119369991}
-  - component: {fileID: 5487202924491791979}
   - component: {fileID: 8852893230242623155}
   m_Layer: 0
   m_Name: Flashlight
@@ -120,6 +119,47 @@ Transform:
   m_Father: {fileID: 6222265418208747710}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &1215884937119369991
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4787321665493432234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8f85b8576b8b954aa4baabfac9546a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  light: {fileID: 6222265418383777309}
+  flashlightDeadClip: {fileID: 8300000, guid: e3cfe875e74676b4ba5c6375bb3f2576, type: 3}
+  flashlightFlashClip: {fileID: 8300000, guid: 3b6e3fdb845aa9e49b3c203b010bd802, type: 3}
+  flashlightToggleClip: {fileID: 8300000, guid: 29862e5187e78404bbf685eb83aa92ca, type: 3}
+  flashlightChargeClip: {fileID: 8300000, guid: 98026415c5dfe4b48b89140b41138544, type: 3}
+  audioSource: {fileID: 8852893230242623155}
+  forwardRotation:
+    m_InternalValue: {x: 0, y: 0, z: 0, w: 1}
+  flashLightOn:
+    m_InternalValue: 0
+  charging:
+    m_InternalValue: 0
+  lightIntensity:
+    m_InternalValue: 5
+  lightRange:
+    m_InternalValue: 10
+  lightAngle:
+    m_InternalValue: 100
+  flashCount:
+    m_InternalValue: 5
+  battery:
+    m_InternalValue: 30
+  chargeInput:
+    m_InternalValue: 0
+  toggleInput:
+    m_InternalValue: 0
+  flashInput:
+    m_InternalValue: 0
+  originPosition: {x: 0, y: 0, z: 0}
 --- !u!33 &4787321665493432238
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -170,56 +210,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &1215884937119369991
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4787321665493432234}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8f85b8576b8b954aa4baabfac9546a6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  light: {fileID: 6222265418383777309}
-  flashlightDeadClip: {fileID: 8300000, guid: e3cfe875e74676b4ba5c6375bb3f2576, type: 3}
-  flashlightFlashClip: {fileID: 8300000, guid: 3b6e3fdb845aa9e49b3c203b010bd802, type: 3}
-  flashlightToggleClip: {fileID: 8300000, guid: 29862e5187e78404bbf685eb83aa92ca, type: 3}
-  flashlightChargeClip: {fileID: 8300000, guid: 98026415c5dfe4b48b89140b41138544, type: 3}
-  audioSource: {fileID: 8852893230242623155}
-  charging: 0
-  battery: 0
-  chargeInput: 0
-  toggleInput: 0
-  flashInput: 0
-  originPosition: {x: 0, y: 0, z: 0}
---- !u!114 &5487202924491791979
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4787321665493432234}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df2868252ab5c4d1da357e8f11f1b524, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SyncPositionX: 1
-  SyncPositionY: 1
-  SyncPositionZ: 1
-  SyncRotAngleX: 1
-  SyncRotAngleY: 1
-  SyncRotAngleZ: 1
-  SyncScaleX: 1
-  SyncScaleY: 1
-  SyncScaleZ: 1
-  PositionThreshold: 0.001
-  RotAngleThreshold: 0.01
-  ScaleThreshold: 0.01
-  InLocalSpace: 0
-  Interpolate: 1
 --- !u!82 &8852893230242623155
 AudioSource:
   m_ObjectHideFlags: 0
@@ -333,8 +323,6 @@ GameObject:
   - component: {fileID: 6222265418208747708}
   - component: {fileID: 4787321665847084022}
   - component: {fileID: 794318215143996374}
-  - component: {fileID: 794318215143996373}
-  - component: {fileID: 3151116330015019791}
   m_Layer: 3
   m_Name: Character
   m_TagString: Untagged
@@ -592,44 +580,6 @@ MonoBehaviour:
   AlwaysReplicateAsRoot: 0
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &794318215143996373
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6222265418208747699}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df2868252ab5c4d1da357e8f11f1b524, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SyncPositionX: 1
-  SyncPositionY: 1
-  SyncPositionZ: 1
-  SyncRotAngleX: 1
-  SyncRotAngleY: 1
-  SyncRotAngleZ: 1
-  SyncScaleX: 0
-  SyncScaleY: 0
-  SyncScaleZ: 0
-  PositionThreshold: 0.001
-  RotAngleThreshold: 0.01
-  ScaleThreshold: 0.01
-  InLocalSpace: 0
-  Interpolate: 1
---- !u!114 &3151116330015019791
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6222265418208747699}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &6222265418383777296
 GameObject:
   m_ObjectHideFlags: 0
@@ -675,8 +625,8 @@ Light:
   m_Type: 0
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 5
-  m_Range: 10
+  m_Intensity: 10
+  m_Range: 15
   m_SpotAngle: 100
   m_InnerSpotAngle: 20
   m_CookieSize: 10

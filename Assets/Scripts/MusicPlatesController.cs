@@ -1,8 +1,11 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class MusicPlatesController : MonoBehaviour {
+using Unity.Netcode;
+using Unity.Collections;
+
+public class MusicPlatesController : NetworkBehaviour {
 
     [SerializeField] private PuzzleSlab plate1;
     [SerializeField] private PuzzleSlab plate2;
@@ -14,16 +17,18 @@ public class MusicPlatesController : MonoBehaviour {
     [SerializeField] private AudioClip noteClip;
     [SerializeField] private AudioClip incorrectClip;
 
-    [SerializeField] private string currentSequence = "";
-    [SerializeField] private string playerSequence = "";
+    [SerializeField] private NetworkVariable<FixedString64Bytes> currentSequence = new(value: "", writePerm: NetworkVariableWritePermission.Server);
+    [SerializeField] private NetworkVariable<FixedString64Bytes> playerSequence = new(value: "", writePerm: NetworkVariableWritePermission.Server);
 
-    private int success = 0;
 
-    private bool started = false;
+    private NetworkVariable<int> success = new(value: 0, writePerm: NetworkVariableWritePermission.Server);
+
+    private NetworkVariable<bool> sequenceStarted = new(value: false, writePerm: NetworkVariableWritePermission.Server);
+
+    private NetworkVariable<bool> inputNeeded = new(value: false, writePerm: NetworkVariableWritePermission.Server);
+
 
     private static bool _completed = false;
-
-    private bool sequenceStarted = false;
 
     
 
@@ -36,6 +41,133 @@ public class MusicPlatesController : MonoBehaviour {
             GameController.instance.CompletePuzzles();
         }
     }
+
+
+    private void PlateStep(int index) {
+
+        if (completed || sequenceStarted.Value)
+            return;
+
+        if (inputNeeded.Value) {
+            if (IsServer) {
+                playerSequence.Value += index.ToString();
+                Debug.Log("Player sequence: " + index.ToString());
+            }
+
+            StartCoroutine(PlayPlateNote(index));
+            CheckSequence();
+        } else {
+            if (IsServer) {
+                success.Value = 0;
+                
+                sequenceStarted.Value = true;
+            }
+        }
+    }
+
+    // private IEnumerator GenerateSequence() {
+
+
+    //     yield return new WaitForSeconds(2);
+
+    //     if (IsServer) {
+    //         sequenceStarted.Value = true;
+    //     }
+        
+    // }
+
+    private IEnumerator PlayPlateNote(char note) {
+        switch(note) {
+            default:
+                yield return PlayPlateNote(1);
+                break;
+            case '2':
+                yield return PlayPlateNote(2);
+                break;
+            case '3':
+                yield return PlayPlateNote(3);
+                break;
+            case '4':
+                yield return PlayPlateNote(4);
+                break;
+        }
+    }
+
+    private IEnumerator PlayPlateNote(int slabIndex) {
+        PuzzleSlab slab;
+        Color litColor;
+        switch(slabIndex) {
+            default:
+                slab = plate1;
+                litColor = Color.red;
+                break;
+            case 2:
+                slab = plate2;
+                litColor = Color.green;
+                break;
+            case 3:
+                slab = plate3;
+                litColor = Color.blue;
+                break;
+            case 4:
+                slab = plate4;
+                litColor = Color.yellow;
+                break;
+        }
+
+        // Play sound
+        slab.audioSource.Play();
+        slab.renderer.material.color = litColor;
+
+        yield return new WaitForSeconds(0.5f);
+
+        slab.renderer.material.color = Color.white;
+    }
+
+
+    private void CheckSequence() {
+
+        if (sequenceStarted.Value)
+            return;
+
+        if (currentSequence.Value[playerSequence.Value.Length - 1] != playerSequence.Value[playerSequence.Value.Length - 1]) {
+            audioSource.PlayOneShot(incorrectClip);
+
+            if (IsServer) {
+                playerSequence.Value = "";
+                currentSequence.Value = "";
+            }
+
+            sequenceStarted.Value = true;
+            inputNeeded.Value = false;
+            return;
+        }
+
+        if (playerSequence.Value == currentSequence.Value) {
+            // Correct sequence
+            if (IsServer)
+                success.Value++;
+
+            if (success.Value >= 6) {
+                plate1.renderer.material.color = Color.green;
+                plate2.renderer.material.color = Color.green;
+                plate3.renderer.material.color = Color.green;
+                plate4.renderer.material.color = Color.green;
+                audioSource.PlayOneShot(correctClip);
+                completed = true;
+                Debug.Log("Completed");
+            } else {
+                Debug.Log("Correct sequence");
+                sequenceStarted.Value = true;
+                inputNeeded.Value = false;
+            }
+
+        }
+    }
+
+
+
+    
 
 
     private void OnEnable() {
@@ -66,120 +198,39 @@ public class MusicPlatesController : MonoBehaviour {
         plate4.audioSource.clip = noteClip;
     }
 
-
-    private void PlateStep(int index) {
-
-        if (completed || sequenceStarted)
+    private float _timer = 0;
+    private int sequenceIndex = -1;
+    private void Update() {
+        if (!sequenceStarted.Value || inputNeeded.Value)
             return;
 
-        if (!started) {
-            StartCoroutine(GenerateSequence());
-            started = true;
-        } else {
-            playerSequence += index.ToString();
-            StartCoroutine(PlayPlateNote(index));
-            CheckSequence();
-        }
-    }
+        _timer = Mathf.MoveTowards(_timer, 1f, Time.deltaTime);
 
-    private IEnumerator GenerateSequence() {
+        if (_timer >= 1f) {
+            _timer = 0;
+            sequenceIndex++;
 
-        sequenceStarted = true;
-        currentSequence = "";
-        playerSequence = "";
-
-        yield return new WaitForSeconds(2);
-
-
-        while (currentSequence.Length < success + 1) {
-            int newEntry = Random.Range(1, 5);
-            StartCoroutine(PlayPlateNote(newEntry));
-            currentSequence += newEntry.ToString();
-
-            yield return new WaitForSeconds(1);
-        }
-
-        sequenceStarted = false;
-        
-    }
-
-    private IEnumerator PlayPlateNote(int slabIndex) {
-        PuzzleSlab slab;
-        switch(slabIndex) {
-            case 1:
-                slab = plate1;
-                break;
-            case 2:
-                slab = plate2;
-                break;
-            case 3:
-                slab = plate3;
-                break;
-            case 4:
-                slab = plate4;
-                break;
-            default:
-                yield break;
-        }
-
-        Color litColor;
-        switch(slabIndex) {
-            case 1:
-                litColor = Color.red;
-                break;
-            case 2:
-                litColor = Color.green;
-                break;
-            case 3:
-                litColor = Color.blue;
-                break;
-            case 4:
-                litColor = Color.yellow;
-                break;
-            default:
-                yield break;
-        }
-
-
-        // Play sound
-        slab.audioSource.Play();
-        slab.renderer.material.color = litColor;
-
-        yield return new WaitForSeconds(0.5f);
-
-        slab.renderer.material.color = Color.white;
-    }
-
-
-    private void CheckSequence() {
-
-        if (sequenceStarted)
-            return;
-
-        if (currentSequence.Substring(0, playerSequence.Length) != playerSequence) {
-            audioSource.PlayOneShot(incorrectClip);
-            StopCoroutine(GenerateSequence());
-            StartCoroutine(GenerateSequence());
-            return;
-        }
-
-        if (playerSequence == currentSequence) {
-            // Correct sequence
-            
-            success++;
-            if (success >= 6) {
-                StopAllCoroutines();
-                plate1.renderer.material.color = Color.green;
-                plate2.renderer.material.color = Color.green;
-                plate3.renderer.material.color = Color.green;
-                plate4.renderer.material.color = Color.green;
-                audioSource.PlayOneShot(correctClip);
-                completed = true;
-            } else {
-                StopCoroutine(GenerateSequence());
-                StartCoroutine(GenerateSequence());
+            if (sequenceIndex == 0) {
+                if (IsServer) {
+                    playerSequence.Value = "";
+                    currentSequence.Value = "";
+                    for (int i = 0; i < success.Value + 1; i++) {
+                        int sequenceNote = UnityEngine.Random.Range(1, 5);
+                        currentSequence.Value += sequenceNote.ToString();
+                    }
+                }
             }
 
+            if (sequenceIndex < currentSequence.Value.Length) {
+                StartCoroutine(PlayPlateNote(Convert.ToChar(currentSequence.Value[sequenceIndex])));
+            } else {
+                sequenceIndex = -1;
+
+                if (IsServer) {
+                    sequenceStarted.Value = false;
+                    inputNeeded.Value = true;
+                }
+            }
         }
     }
 }

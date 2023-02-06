@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Netcode;
 
 using SevenGame.Utility;
 
@@ -15,13 +16,16 @@ public class Player : Character {
     // [SerializeField] private GameObject cameraPrefab;
     [SerializeField] private GameObject uiPrefab;
 
+    private NetworkVariable<Vector3> netPos = new(writePerm : NetworkVariableWritePermission.Server);
+    private NetworkVariable<Quaternion> netRot = new(writePerm : NetworkVariableWritePermission.Server);
 
-    private Vector3 _totalMovement = Vector3.zero;
 
-    private Vector3 relativeDirection = Vector3.zero;
-    private Quaternion cameraRotation = Quaternion.identity;
+    private NetworkVariable<Vector3> _totalMovement = new(value: Vector3.zero);
+
+    private NetworkVariable<Vector3> relativeDirection = new(value: Vector3.zero, writePerm : NetworkVariableWritePermission.Owner);
+    private NetworkVariable<Quaternion> cameraRotation = new(value: Quaternion.identity, writePerm : NetworkVariableWritePermission.Owner);
     
-    private bool sprinting = false;
+    private NetworkVariable<bool> sprinting = new(value: false, writePerm : NetworkVariableWritePermission.Owner);
 
 
     protected const float maxStamina = 10f;
@@ -60,10 +64,10 @@ public class Player : Character {
 
     public float hearingDistance {
         get {
-            if (flashlight.charging)
+            if (flashlight.charging.Value)
                 return 200f;
 
-            if (sprinting)
+            if (sprinting.Value)
                 return 80f;
 
             return 30f;
@@ -81,10 +85,10 @@ public class Player : Character {
 
     public override float movementSpeed {
         get {
-            if (flashlight.charging)
+            if (flashlight.charging.Value)
                 return 1f;
 
-            return sprinting ? 6f : 3f;
+            return sprinting.Value ? 6f : 3f;
         }
     }
 
@@ -99,11 +103,11 @@ public class Player : Character {
             staminaImage = uiObject.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<Image>();
         }
 
-        if (IsServer) {
+        // if (players.Count > 0) {
             characterCollider.transform.position = GameObject.FindGameObjectWithTag("Respawn").transform.position;
-        } else {
-            characterCollider.transform.position = players[0].transform.position;
-        }
+        // } else {
+        //     characterCollider.transform.position = players[0].transform.position;
+        // }
     }
 
 
@@ -125,14 +129,26 @@ public class Player : Character {
 
     private void PlayerMovement() {
 
-        Quaternion forwardRotation = relativeDirection.sqrMagnitude != 0f ? Quaternion.LookRotation(relativeDirection) : Quaternion.identity;
-        transform.rotation = Quaternion.Slerp(transform.rotation, cameraRotation * forwardRotation, 5f * Time.deltaTime);
+        if (IsServer) {
+            Quaternion forwardRotation = relativeDirection.Value.sqrMagnitude != 0f ? Quaternion.LookRotation(relativeDirection.Value) : Quaternion.identity;
+            transform.rotation = Quaternion.Slerp(transform.rotation, cameraRotation.Value * forwardRotation, 5f * Time.deltaTime);
 
-        if (relativeDirection.sqrMagnitude == 0)
+            netRot.Value = transform.rotation;
+        } else {
+            transform.rotation = Quaternion.Slerp(transform.rotation, netRot.Value, 25f * Time.fixedDeltaTime);
+        }
+
+
+        if (!IsServer)
+            return;
+
+        _totalMovement.Value = Vector3.zero;
+
+        if (relativeDirection.Value.sqrMagnitude == 0)
             return;
 
 
-        Vector3 movementDirection = cameraRotation * relativeDirection;
+        Vector3 movementDirection = cameraRotation.Value * relativeDirection.Value.normalized;
 
         if (isGrounded) {
             Vector3 rightOfDirection = Vector3.Cross(movementDirection, groundHit.normal).normalized;
@@ -141,7 +157,7 @@ public class Player : Character {
             movementDirection = directionConstrainedToGround * movementDirection.magnitude;
         }
 
-        _totalMovement = movementDirection;
+        _totalMovement.Value = movementDirection;
     }
 
     private void PlayerControls() {
@@ -149,10 +165,10 @@ public class Player : Character {
             return;
 
 
-        flashlight.PointFlashLight(cameraController.camera.transform.rotation);
-        flashlight.chargeInput = Input.GetMouseButton(1);
-        flashlight.toggleInput = Input.GetMouseButtonDown(0);
-        flashlight.flashInput = Input.GetKeyDown(KeyCode.F);
+        flashlight.forwardRotation.Value = cameraController.camera.transform.rotation;
+        flashlight.chargeInput.Value = Input.GetMouseButton(1);
+        flashlight.toggleInput.Value = Input.GetMouseButtonDown(0);
+        flashlight.flashInput.Value = Input.GetKeyDown(KeyCode.F);
         flashlight.originPosition = characterCollider.transform.position;
 
 
@@ -165,8 +181,8 @@ public class Player : Character {
         float movement = forward ? 1f : back ? -1f : 0f;
         float strafe = right ? 1f : left ? -1f : 0f;
 
-        sprinting = sprintInput && !tiredOut && !flashlight.chargeInput;
-        stamina = Mathf.MoveTowards(stamina, sprinting ? 0f : maxStamina, Time.deltaTime);
+        sprinting.Value = sprintInput && !tiredOut && !flashlight.chargeInput.Value;
+        stamina = Mathf.MoveTowards(stamina, sprinting.Value ? 0f : maxStamina, Time.deltaTime);
         if (stamina == 0 && !tiredOut) {
             tiredOut = true;
             audioSource.PlayOneShot(tiredClip);
@@ -174,10 +190,12 @@ public class Player : Character {
             tiredOut = false;
         }
 
-        relativeDirection = new Vector3(strafe, 0f, movement).normalized;Vector3 groundUp = Vector3.up;
+        relativeDirection.Value = new Vector3(strafe, 0f, movement).normalized;
 
+        Vector3 groundUp = Vector3.up;
         Vector3 groundForward = Vector3.Cross(cameraController.camera.transform.right, groundUp);
-        cameraRotation = Quaternion.LookRotation(groundForward, groundUp);
+
+        cameraRotation.Value = Quaternion.LookRotation(groundForward, groundUp);
     }
 
     
@@ -202,22 +220,30 @@ public class Player : Character {
     protected override void FixedUpdate() {
         base.FixedUpdate();
 
-        Vector3 movement = _totalMovement * movementSpeed * Time.fixedDeltaTime;
-        
-        bool walkCollision = characterCollider.ColliderCast(characterCollider.transform.position, movement, out RaycastHit walkHit, 0.15f, groundMask);
+        if (IsServer) {
 
-        Vector3 executedMovement = walkCollision ? movement.normalized * walkHit.distance : movement;
-        _rigidbody.MovePosition(_rigidbody.position + executedMovement);
+            Vector3 movement = _totalMovement.Value * movementSpeed * Time.fixedDeltaTime;
+            
+            bool walkCollision = characterCollider.ColliderCast(characterCollider.transform.position, movement, out RaycastHit walkHit, 0.15f, groundMask);
+
+            Vector3 executedMovement = walkCollision ? movement.normalized * walkHit.distance : movement;
+            _rigidbody.MovePosition(_rigidbody.position + executedMovement);
 
 
-        // Check for penetration and adjust accordingly
-        foreach ( Collider worldCollider in characterCollider.ColliderOverlap(Vector3.zero, 0f, groundMask) ) {
-            if ( Physics.ComputePenetration(characterCollider, characterCollider.transform.position, characterCollider.transform.rotation, worldCollider, worldCollider.transform.position, worldCollider.transform.rotation, out Vector3 direction, out float distance) ) {
-                _rigidbody.MovePosition(_rigidbody.position + (direction * distance));
+            // Check for penetration and adjust accordingly
+            foreach ( Collider worldCollider in characterCollider.ColliderOverlap(Vector3.zero, 0f, groundMask) ) {
+                if ( Physics.ComputePenetration(characterCollider, characterCollider.transform.position, characterCollider.transform.rotation, worldCollider, worldCollider.transform.position, worldCollider.transform.rotation, out Vector3 direction, out float distance) ) {
+                    _rigidbody.MovePosition(_rigidbody.position + (direction * distance));
+                }
             }
+
+
+            netPos.Value = transform.position;
+        } else {
+            transform.position = Vector3.Lerp(transform.position, netPos.Value, 15f * Time.fixedDeltaTime);
         }
 
-        _totalMovement = Vector3.zero;
+        // _totalMovement.Value = Vector3.zero;
     }
 
     

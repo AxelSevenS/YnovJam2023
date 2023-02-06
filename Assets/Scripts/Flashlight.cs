@@ -19,39 +19,48 @@ public class Flashlight : NetworkBehaviour {
 
     [Space(15)]
 
-    private Quaternion forwardRotation = Quaternion.identity;
+    public NetworkVariable<Quaternion> forwardRotation = new(value: Quaternion.identity, writePerm: NetworkVariableWritePermission.Owner);
 
-    private bool flashLightOn = false;
-    public bool charging = false;
+    [SerializeField] private NetworkVariable<bool> flashLightOn = new(value: false, writePerm: NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> charging = new(value: false, writePerm: NetworkVariableWritePermission.Server);
 
     private List<Enemy> flashTargets = new List<Enemy>();
     
     private const float flashLightChargeTime = 5f;
 
-    const float normalLightIntensity = 5f;
-    private float lightIntensity = normalLightIntensity;
+    private const float normalLightIntensity = 50f;
+    [SerializeField] private NetworkVariable<float> lightIntensity = new(value: normalLightIntensity, writePerm: NetworkVariableWritePermission.Server);
     
-    const float normalLightRange = 10f;
-    private float lightRange = normalLightRange;
+    private const float normalLightRange = 75f;
+    [SerializeField] private NetworkVariable<float> lightRange = new(value: normalLightRange, writePerm: NetworkVariableWritePermission.Server);
 
-    const float normalLightSize = 100f;
-    private float lightAngle = normalLightSize;
+    private const float normalLightSize = 100f;
+    [SerializeField] private NetworkVariable<float> lightAngle = new(value: normalLightSize, writePerm: NetworkVariableWritePermission.Server);
 
+    private NetworkVariable<bool> flashInitiated = new(value: false, writePerm: NetworkVariableWritePermission.Owner);
     private const int maxFlashCount = 5;
-    private int flashCount = maxFlashCount;
+    [SerializeField] private NetworkVariable<int> flashCount = new(value: maxFlashCount, writePerm: NetworkVariableWritePermission.Server);
 
     private const float maxBattery = 30f;
-    [SerializeField] private float battery = maxBattery;
+    [SerializeField] private NetworkVariable<float> battery = new(value: maxBattery, writePerm: NetworkVariableWritePermission.Server);
 
-    public bool chargeInput = false;
-    public bool toggleInput = false;
-    public bool flashInput = false;
+    public NetworkVariable<bool> chargeInput = new(value: false, writePerm: NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> toggleInput = new(value: false, writePerm: NetworkVariableWritePermission.Owner);
+    public NetworkVariable<bool> flashInput = new(value: false, writePerm: NetworkVariableWritePermission.Owner);
 
     public Vector3 originPosition;
 
 
+    public bool lightEnabled => flashLightOn.Value && !charging.Value;
+    public bool canToggle => battery.Value > 0 && !charging.Value;
+
+
 
     private void UpdateFlashLightTargets() {
+
+        if (!IsServer) 
+            return;
+
         flashTargets.Clear();
 
         Vector3 capsuleStart = transform.position;
@@ -65,105 +74,120 @@ public class Flashlight : NetworkBehaviour {
         }
     }
 
-    public void PointFlashLight(Quaternion rotation) {
-        forwardRotation = rotation;
-    }
-
     public void ActivateFlash(){
-        if (flashCount > 0){
+        Debug.Log("Flash");
+        if (flashCount.Value > 0){
 
-            lightIntensity = 50f;
-            lightAngle = 150f;
-            lightRange = 20f;
+            if (IsServer) {
+
+                lightIntensity.Value = 500f;
+                lightAngle.Value = 150f;
+                lightRange.Value = 150f;
+
+                foreach (Enemy enemy in flashTargets) {
+                    enemy?.Stun(5f);
+                }
+
+                flashCount.Value -= 1;
+            }
+
             audioSource.clip = flashlightFlashClip;
             audioSource.Play();
 
-            foreach (Enemy enemy in flashTargets) {
-                enemy?.Stun(5f);
-            }
-
-            flashCount -= 1;
-        }
-        else{
+        } else {
             audioSource.clip = flashlightDeadClip;
             audioSource.Play();
-            Debug.Log("No more flash");
         }
     }
 
-    public void ToggleFlashLight() {
-        flashLightOn = !flashLightOn;
-
+    private void ToggleLight() {
+        Debug.Log("Toggle");
         audioSource.clip = flashlightToggleClip;
         audioSource.Play();
+
+        if (IsOwner)
+            flashLightOn.Value = !flashLightOn.Value;
     }
 
     private void Start() {
-        battery = maxBattery;
-        flashCount = maxFlashCount;
+        if (!IsServer)
+            return;
+            
+        battery.Value = maxBattery;
+        flashCount.Value = maxFlashCount;
 
-        lightIntensity = normalLightIntensity;
-        lightRange = normalLightRange;
-        lightAngle = normalLightSize;
+        lightIntensity.Value = normalLightIntensity;
+        lightRange.Value = normalLightRange;
+        lightAngle.Value = normalLightSize;
     }
 
     private void Update() {
-        float batteryAmount = battery/maxBattery;
-
-        lightIntensity = Mathf.MoveTowards(lightIntensity, batteryAmount * normalLightIntensity, 25f * Time.deltaTime);
-        light.intensity = lightIntensity;
-
-        lightRange = Mathf.MoveTowards(lightRange, batteryAmount * normalLightRange, 25f * Time.deltaTime);
-        light.range = lightRange;
-
-        lightAngle = Mathf.MoveTowards(lightAngle, normalLightSize, 25f * Time.deltaTime);
-        light.spotAngle = lightAngle;
+        float batteryAmount = battery.Value/maxBattery;
 
 
-        // Charge Flashlight
-        if (!charging && chargeInput) {
+        // Charging Flashlight
+        if (!charging.Value && chargeInput.Value) {
             audioSource.clip = flashlightChargeClip;
             audioSource.Play();
-        } else if (charging && !chargeInput) {
+        } else if (charging.Value && !chargeInput.Value) {
             audioSource.Stop();
         }
-        charging = chargeInput;
-        if (charging) {
-            battery = Mathf.MoveTowards(battery, maxBattery, maxBattery / flashLightChargeTime * Time.deltaTime);
-        }
-            
-        bool canToggle = true;
-        if (battery == 0){
-            flashLightOn = false;
-            canToggle = false;
-        }
-        
-        if( toggleInput && canToggle ) {
-            ToggleFlashLight();
+
+
+        if (battery.Value == 0) {
+
+            if (IsServer) {
+                flashLightOn.Value = false;
+            }
+
+        } else if (toggleInput.Value && canToggle) {
+            ToggleLight();
         }
 
-        flashTargets.Clear();
 
-        light.enabled = flashLightOn && !charging;
-        if (!light.enabled)
-            return;
-
-        UpdateFlashLightTargets();
-
-        foreach (Enemy enemy in flashTargets) {
-            enemy.slowness = 0.5f;
-        }
-
-        if (flashInput){
+        if (flashInput.Value) {
             ActivateFlash();
         }
 
-        battery = Mathf.MoveTowards(battery, 0, Time.deltaTime);
+
+
+        if (IsServer) {
+
+            charging.Value = chargeInput.Value;
+            if (charging.Value) {
+                battery.Value = Mathf.MoveTowards(battery.Value, maxBattery, maxBattery / flashLightChargeTime * Time.deltaTime);
+            }
+
+            lightIntensity.Value = Mathf.MoveTowards(lightIntensity.Value, batteryAmount * normalLightIntensity, 100f * Time.deltaTime);
+            lightRange.Value = Mathf.MoveTowards(lightRange.Value, batteryAmount * normalLightRange, 25f * Time.deltaTime);
+            lightAngle.Value = Mathf.MoveTowards(lightAngle.Value, normalLightSize, 25f * Time.deltaTime);
+
+            flashTargets.Clear();
+
+            if (lightEnabled) {
+                UpdateFlashLightTargets();
+
+                foreach (Enemy enemy in flashTargets) {
+                    enemy.slowness = 0.5f;
+                }
+
+                battery.Value = Mathf.MoveTowards(battery.Value, 0, Time.deltaTime);
+            }
+
+        }
+
+        light.enabled = lightEnabled;
+
+        light.intensity = lightIntensity.Value;
+        light.range = lightRange.Value;
+        light.spotAngle = lightAngle.Value;
+
+
     }
 
     private void FixedUpdate() {
         
-        transform.rotation = forwardRotation * Quaternion.AngleAxis(90f, Vector3.right);
+        transform.rotation = Quaternion.Slerp(transform.rotation, forwardRotation.Value * Quaternion.AngleAxis(90f, Vector3.right), 15f * Time.fixedDeltaTime);
         // transform.position = originPosition + transform.rotation * new Vector3(0.75f, 0, 0.3f);
     }
 }
