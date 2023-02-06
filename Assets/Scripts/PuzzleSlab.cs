@@ -6,14 +6,17 @@ using UnityEngine;
 public class PuzzleSlab : MonoBehaviour {
     public Action<Player> onPlayerStep;
 
-    public Renderer renderer {get; private set;}
+    public new Renderer renderer {get; private set;}
 
     public AudioSource audioSource {get; private set;}
 
 
     private void Awake() {
         renderer = GetComponent<Renderer>();
+        renderer.material.color = Color.white;
         audioSource = GetComponent<AudioSource>();
+        audioSource.spatialBlend = 1f;
+        audioSource.dopplerLevel = 0f;
     }
 
     private void OnTriggerEnter(Collider collider) {

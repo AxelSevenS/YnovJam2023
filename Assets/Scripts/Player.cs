@@ -65,12 +65,12 @@ public class Player : Character {
     public float hearingDistance {
         get {
             if (flashlight.charging.Value)
-                return 200f;
+                return 60f;
 
             if (sprinting.Value)
-                return 80f;
+                return 40f;
 
-            return 30f;
+            return 0f;
         }
     }
 
@@ -211,6 +211,13 @@ public class Player : Character {
             Debug.Log("Game Over");
             Application.Quit();
         }
+    }
+
+    protected override void Awake() {
+        base.Awake();
+        audioSource = GetComponent<AudioSource>();
+        audioSource.spatialBlend = 1f;
+        audioSource.dopplerLevel = 0f;
     }
 
     protected override void Start() {

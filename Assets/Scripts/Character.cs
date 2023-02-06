@@ -64,6 +64,8 @@ public abstract class Character : NetworkBehaviour {
 
         _isGrounded = characterCollider.ColliderCast(characterCollider.transform.position, Vector3.down * 5f, out groundHit, 0.15f, groundMask);
 
+        Debug.Log("Grounded: " + _isGrounded);
+
         CharacterMovement();
 
     }

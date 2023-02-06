@@ -14,6 +14,7 @@ public class Enemy : Character {
     public EnemyState enemyState;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip screamClip;
+    [SerializeField] private AudioClip stepClip;
 
 
     private Player targetedPlayer;
@@ -23,7 +24,7 @@ public class Enemy : Character {
     private const float wanderTimeMax = 40f;
     public float wanderTimer = 0f;
 
-    public float wanderRadius = 100f;
+    public float wanderRadius = 75f;
 
 
     public float slowness = 1f;
@@ -34,7 +35,7 @@ public class Enemy : Character {
         get {
             switch (enemyState) {
                 case EnemyState.Wander:
-                    return 3.5f;
+                    return 4.5f;
                 case EnemyState.Chase:
                     return 6.5f * slowness;
                 default:
@@ -48,8 +49,12 @@ public class Enemy : Character {
     }
 
     protected override void CharacterMovement() {
+
+        Debug.Log("Enemy Movement !");
+
         navMeshAgent.speed = movementSpeed;
         slowness = Mathf.MoveTowards(slowness, 1f, 0.5f * Time.deltaTime);
+
         switch (enemyState) {
             case EnemyState.Wander:
                 Wander();
@@ -65,7 +70,7 @@ public class Enemy : Character {
 
     private void AttackTargetedPlayer() {
         float sqrDistance = (targetedPlayer.transform.position - transform.position).sqrMagnitude;
-        // Debug.Log(sqrDistance);
+        
         if (sqrDistance < 4f) {
             targetedPlayer.health = Mathf.MoveTowards( targetedPlayer.health, 0, 25f * Time.deltaTime);
             Debug.Log(targetedPlayer.health);
@@ -73,11 +78,9 @@ public class Enemy : Character {
     }
      
      public static Vector3 RandomNavSphere(Vector3 origin, float dist, int layermask) {
-        Vector3 randDirection = UnityEngine.Random.insideUnitSphere * dist;
+        Vector3 randDirection = origin + UnityEngine.Random.insideUnitSphere.normalized * dist;
  
-        randDirection += origin;
- 
-        NavMesh.SamplePosition (randDirection, out NavMeshHit navHit, dist, layermask);
+        NavMesh.SamplePosition (randDirection, out NavMeshHit navHit, 50f, layermask);
  
         return navHit.position;
     }
@@ -107,6 +110,8 @@ public class Enemy : Character {
             Vector3 newPos = RandomNavSphere(transform.position, wanderRadius, -1);
             navMeshAgent.SetDestination(newPos);
         }
+
+        Debug.Log(navMeshAgent.destination);
     }
     
 
@@ -139,8 +144,22 @@ public class Enemy : Character {
 
     protected override void Awake() {
         base.Awake();
+
+        audioSource = GetComponent<AudioSource>();
+        audioSource.spatialBlend = 1f;
+        audioSource.dopplerLevel = 0f;
         navMeshAgent = GetComponent<NavMeshAgent>();
         enemyState = EnemyState.Wander;
+    }
+
+    protected override void Update() {
+        base.Update();
+
+        if (!audioSource.isPlaying) {
+            audioSource.loop = true;
+            audioSource.clip = stepClip;
+            audioSource.Play();
+        }
     }
 
 

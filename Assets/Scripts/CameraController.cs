@@ -43,6 +43,8 @@ public class CameraController : MonoBehaviour {
 
     private void UpdateCameraPosition(){
 
+        if (target == null) return;
+
         Quaternion mouseRotation = Quaternion.AngleAxis(mousePosition.x, Vector3.up) * Quaternion.AngleAxis(mousePosition.y, Vector3.right);
         transform.rotation = mouseRotation;
 

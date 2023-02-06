@@ -20,61 +20,12 @@ public class MusicPlatesController : NetworkBehaviour {
     [SerializeField] private NetworkVariable<FixedString64Bytes> currentSequence = new(value: "", writePerm: NetworkVariableWritePermission.Server);
     [SerializeField] private NetworkVariable<FixedString64Bytes> playerSequence = new(value: "", writePerm: NetworkVariableWritePermission.Server);
 
+    private NetworkVariable<State> state = new(value: State.Idle, writePerm: NetworkVariableWritePermission.Server);
 
     private NetworkVariable<int> success = new(value: 0, writePerm: NetworkVariableWritePermission.Server);
 
-    private NetworkVariable<bool> sequenceStarted = new(value: false, writePerm: NetworkVariableWritePermission.Server);
-
-    private NetworkVariable<bool> inputNeeded = new(value: false, writePerm: NetworkVariableWritePermission.Server);
 
 
-    private static bool _completed = false;
-
-    
-
-    public static bool completed {
-        get {
-            return _completed;
-        }
-        private set {
-            _completed = value;
-            GameController.instance.CompletePuzzles();
-        }
-    }
-
-
-    private void PlateStep(int index) {
-
-        if (completed || sequenceStarted.Value)
-            return;
-
-        if (inputNeeded.Value) {
-            if (IsServer) {
-                playerSequence.Value += index.ToString();
-                Debug.Log("Player sequence: " + index.ToString());
-            }
-
-            StartCoroutine(PlayPlateNote(index));
-            CheckSequence();
-        } else {
-            if (IsServer) {
-                success.Value = 0;
-                
-                sequenceStarted.Value = true;
-            }
-        }
-    }
-
-    // private IEnumerator GenerateSequence() {
-
-
-    //     yield return new WaitForSeconds(2);
-
-    //     if (IsServer) {
-    //         sequenceStarted.Value = true;
-    //     }
-        
-    // }
 
     private IEnumerator PlayPlateNote(char note) {
         switch(note) {
@@ -94,6 +45,11 @@ public class MusicPlatesController : NetworkBehaviour {
     }
 
     private IEnumerator PlayPlateNote(int slabIndex) {
+
+        if (state.Value == State.Completed)
+            yield break;
+
+
         PuzzleSlab slab;
         Color litColor;
         switch(slabIndex) {
@@ -117,6 +73,7 @@ public class MusicPlatesController : NetworkBehaviour {
 
         // Play sound
         slab.audioSource.Play();
+
         slab.renderer.material.color = litColor;
 
         yield return new WaitForSeconds(0.5f);
@@ -125,26 +82,31 @@ public class MusicPlatesController : NetworkBehaviour {
     }
 
 
-    private void CheckSequence() {
+    private void PlateStep(int index) {
 
-        if (sequenceStarted.Value)
-            return;
-
-        if (currentSequence.Value[playerSequence.Value.Length - 1] != playerSequence.Value[playerSequence.Value.Length - 1]) {
-            audioSource.PlayOneShot(incorrectClip);
-
-            if (IsServer) {
-                playerSequence.Value = "";
-                currentSequence.Value = "";
-            }
-
-            sequenceStarted.Value = true;
-            inputNeeded.Value = false;
+        if (state.Value == State.Idle) {
+            state.Value = State.SequenceDisplay;
             return;
         }
 
+        if (state.Value != State.InputNeeded)
+            return;
+
+
+        StartCoroutine(PlayPlateNote(index));
+
+
+        if (IsServer) {
+            playerSequence.Value += index.ToString();
+            Debug.Log("Player sequence: " + index.ToString());
+        }
+
+
+
         if (playerSequence.Value == currentSequence.Value) {
-            // Correct sequence
+
+            // Correct full sequence
+
             if (IsServer)
                 success.Value++;
 
@@ -153,16 +115,35 @@ public class MusicPlatesController : NetworkBehaviour {
                 plate2.renderer.material.color = Color.green;
                 plate3.renderer.material.color = Color.green;
                 plate4.renderer.material.color = Color.green;
+
                 audioSource.PlayOneShot(correctClip);
-                completed = true;
-                Debug.Log("Completed");
+
+                if (IsServer)
+                    state.Value = State.Completed;
             } else {
-                Debug.Log("Correct sequence");
-                sequenceStarted.Value = true;
-                inputNeeded.Value = false;
+                if (IsServer)
+                    state.Value = State.SequenceDisplay;
             }
 
+        } else if (currentSequence.Value[playerSequence.Value.Length - 1] == playerSequence.Value[playerSequence.Value.Length - 1]) {
+
+            // Correct Plate
+
+        } else {
+
+            // Incorrect Plate
+
+            audioSource.PlayOneShot(incorrectClip);
+
+            if (IsServer) {
+                playerSequence.Value = "";
+                currentSequence.Value = "";
+            }
+
+            if (IsServer)
+                state.Value = State.SequenceDisplay;
         }
+
     }
 
 
@@ -185,40 +166,40 @@ public class MusicPlatesController : NetworkBehaviour {
         plate4.onPlayerStep -= (player) => PlateStep(4);
     }
 
+    private void Awake() {
+        audioSource = GetComponent<AudioSource>();
+        audioSource.spatialBlend = 1f;
+        audioSource.dopplerLevel = 0f;
+    }
 
     private void Start() {
         
-        plate1.audioSource.pitch = 0.8f;
+        plate1.audioSource.pitch = 0.7f;
         plate2.audioSource.pitch = 0.9f;
         plate3.audioSource.pitch = 1.1f;
-        plate4.audioSource.pitch = 1.2f;
+        plate4.audioSource.pitch = 1.3f;
         plate1.audioSource.clip = noteClip;
         plate2.audioSource.clip = noteClip;
         plate3.audioSource.clip = noteClip;
         plate4.audioSource.clip = noteClip;
     }
 
-    private float _timer = 0;
+    private float _displayDelayTimer = 1f;
     private int sequenceIndex = -1;
     private void Update() {
-        if (!sequenceStarted.Value || inputNeeded.Value)
+
+        if (state.Value != State.SequenceDisplay)
             return;
 
-        _timer = Mathf.MoveTowards(_timer, 1f, Time.deltaTime);
 
-        if (_timer >= 1f) {
-            _timer = 0;
+        _displayDelayTimer = Mathf.MoveTowards(_displayDelayTimer, 0f, Time.deltaTime);
+
+        if (_displayDelayTimer == 0f) {
+            _displayDelayTimer = 1f;
             sequenceIndex++;
 
-            if (sequenceIndex == 0) {
-                if (IsServer) {
-                    playerSequence.Value = "";
-                    currentSequence.Value = "";
-                    for (int i = 0; i < success.Value + 1; i++) {
-                        int sequenceNote = UnityEngine.Random.Range(1, 5);
-                        currentSequence.Value += sequenceNote.ToString();
-                    }
-                }
+            if (IsServer && sequenceIndex == 0) {
+                GenerateSequence();
             }
 
             if (sequenceIndex < currentSequence.Value.Length) {
@@ -226,11 +207,26 @@ public class MusicPlatesController : NetworkBehaviour {
             } else {
                 sequenceIndex = -1;
 
-                if (IsServer) {
-                    sequenceStarted.Value = false;
-                    inputNeeded.Value = true;
-                }
+                if (IsServer)
+                    state.Value = State.InputNeeded;
+
             }
         }
+    }
+
+    private void GenerateSequence() {
+        playerSequence.Value = "";
+        currentSequence.Value = "";
+        for (int i = 0; i < success.Value + 1; i++) {
+            int sequenceNote = UnityEngine.Random.Range(1, 5);
+            currentSequence.Value += sequenceNote.ToString();
+        }
+    }
+
+    private enum State {
+        Idle,
+        SequenceDisplay,
+        InputNeeded,
+        Completed
     }
 }

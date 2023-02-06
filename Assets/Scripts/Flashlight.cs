@@ -41,7 +41,7 @@ public class Flashlight : NetworkBehaviour {
     private const int maxFlashCount = 5;
     [SerializeField] private NetworkVariable<int> flashCount = new(value: maxFlashCount, writePerm: NetworkVariableWritePermission.Server);
 
-    private const float maxBattery = 30f;
+    private const float maxBattery = 15f;
     [SerializeField] private NetworkVariable<float> battery = new(value: maxBattery, writePerm: NetworkVariableWritePermission.Server);
 
     public NetworkVariable<bool> chargeInput = new(value: false, writePerm: NetworkVariableWritePermission.Owner);
@@ -121,6 +121,13 @@ public class Flashlight : NetworkBehaviour {
         lightAngle.Value = normalLightSize;
     }
 
+    private void Awake() {
+        audioSource = GetComponent<AudioSource>();
+        audioSource.spatialBlend = 1f;
+        audioSource.dopplerLevel = 0f;
+        light = GetComponentInChildren<Light>();
+    }
+
     private void Update() {
         float batteryAmount = battery.Value/maxBattery;
 
@@ -158,7 +165,7 @@ public class Flashlight : NetworkBehaviour {
                 battery.Value = Mathf.MoveTowards(battery.Value, maxBattery, maxBattery / flashLightChargeTime * Time.deltaTime);
             }
 
-            lightIntensity.Value = Mathf.MoveTowards(lightIntensity.Value, batteryAmount * normalLightIntensity, 100f * Time.deltaTime);
+            lightIntensity.Value = Mathf.MoveTowards(lightIntensity.Value, batteryAmount * normalLightIntensity, 150f * Time.deltaTime);
             lightRange.Value = Mathf.MoveTowards(lightRange.Value, batteryAmount * normalLightRange, 25f * Time.deltaTime);
             lightAngle.Value = Mathf.MoveTowards(lightAngle.Value, normalLightSize, 25f * Time.deltaTime);
 
