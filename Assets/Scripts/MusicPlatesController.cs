@@ -23,6 +23,10 @@ public class MusicPlatesController : MonoBehaviour {
 
     private static bool _completed = false;
 
+    private bool sequenceStarted = false;
+
+    
+
     public static bool completed {
         get {
             return _completed;
@@ -50,37 +54,56 @@ public class MusicPlatesController : MonoBehaviour {
     }
 
 
+    private void Start() {
+        
+        plate1.audioSource.pitch = 0.8f;
+        plate2.audioSource.pitch = 0.9f;
+        plate3.audioSource.pitch = 1.1f;
+        plate4.audioSource.pitch = 1.2f;
+        plate1.audioSource.clip = noteClip;
+        plate2.audioSource.clip = noteClip;
+        plate3.audioSource.clip = noteClip;
+        plate4.audioSource.clip = noteClip;
+    }
+
+
     private void PlateStep(int index) {
 
+        if (completed || sequenceStarted)
+            return;
+
         if (!started) {
-            StopCoroutine(GenerateSequence());
             StartCoroutine(GenerateSequence());
             started = true;
         } else {
             playerSequence += index.ToString();
-            StartCoroutine(PlaySound(index));
+            StartCoroutine(PlayPlateNote(index));
             CheckSequence();
         }
     }
 
     private IEnumerator GenerateSequence() {
 
-        yield return new WaitForSeconds(2);
-
+        sequenceStarted = true;
         currentSequence = "";
         playerSequence = "";
+
+        yield return new WaitForSeconds(2);
 
 
         while (currentSequence.Length < success + 1) {
             int newEntry = Random.Range(1, 5);
-            StartCoroutine(PlaySound(newEntry));
+            StartCoroutine(PlayPlateNote(newEntry));
             currentSequence += newEntry.ToString();
 
             yield return new WaitForSeconds(1);
         }
+
+        sequenceStarted = false;
+        
     }
 
-    private IEnumerator PlaySound(int slabIndex) {
+    private IEnumerator PlayPlateNote(int slabIndex) {
         PuzzleSlab slab;
         switch(slabIndex) {
             case 1:
@@ -119,17 +142,27 @@ public class MusicPlatesController : MonoBehaviour {
 
 
         // Play sound
-        audioSource.pitch = 0.8f + slabIndex*0.1f;
-        audioSource.PlayOneShot(noteClip);
-
-
+        slab.audioSource.Play();
         slab.renderer.material.color = litColor;
+
         yield return new WaitForSeconds(0.5f);
+
         slab.renderer.material.color = Color.white;
     }
 
 
     private void CheckSequence() {
+
+        if (sequenceStarted)
+            return;
+
+        if (currentSequence.Substring(0, playerSequence.Length) != playerSequence) {
+            audioSource.PlayOneShot(incorrectClip);
+            StopCoroutine(GenerateSequence());
+            StartCoroutine(GenerateSequence());
+            return;
+        }
+
         if (playerSequence == currentSequence) {
             // Correct sequence
             
@@ -147,11 +180,6 @@ public class MusicPlatesController : MonoBehaviour {
                 StartCoroutine(GenerateSequence());
             }
 
-        } else if (currentSequence.Substring(0, playerSequence.Length) != playerSequence) {
-            audioSource.pitch = 1f;
-            audioSource.PlayOneShot(incorrectClip);
-            StopCoroutine(GenerateSequence());
-            StartCoroutine(GenerateSequence());
         }
     }
 }

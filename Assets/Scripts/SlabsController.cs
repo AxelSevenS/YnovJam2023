@@ -1,6 +1,8 @@
 using UnityEngine;
 
-public class SlabsController : MonoBehaviour {
+using Unity.Netcode;
+
+public class SlabsController : NetworkBehaviour {
 
     [SerializeField] private PuzzleSlab player1Slab1;
     [SerializeField] private PuzzleSlab player1Slab2;
@@ -31,6 +33,8 @@ public class SlabsController : MonoBehaviour {
     }
 
 
+
+
     private void OnEnable() {
         player1Slab1.onPlayerStep += Player1Slab1Step;
         player1Slab2.onPlayerStep += Player1Slab2Step;
@@ -47,6 +51,10 @@ public class SlabsController : MonoBehaviour {
         player2Slab1.onPlayerStep -= Player2Slab1Step;
         player2Slab2.onPlayerStep -= Player2Slab2Step;
         player2Slab3.onPlayerStep -= Player2Slab3Step;
+    }
+
+    private void Start() {
+        SetProgress(0);
     }
 
 
@@ -168,9 +176,5 @@ public class SlabsController : MonoBehaviour {
         }
 
         this.progress = progress;
-    }
-
-    private void Start() {
-        SetProgress(0);
     }
 }

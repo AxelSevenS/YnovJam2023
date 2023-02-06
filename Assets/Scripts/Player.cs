@@ -15,9 +15,14 @@ public class Player : Character {
     // [SerializeField] private GameObject cameraPrefab;
     [SerializeField] private GameObject uiPrefab;
 
+
     private Vector3 _totalMovement = Vector3.zero;
+
     private Vector3 relativeDirection = Vector3.zero;
     private Quaternion cameraRotation = Quaternion.identity;
+    
+    private bool sprinting = false;
+
 
     protected const float maxStamina = 10f;
     [SerializeField] private float _stamina = maxStamina;
@@ -28,7 +33,6 @@ public class Player : Character {
 
     // public Vector3 jumpDirection;
 
-    private bool sprinting = false;
 
 
     public override float health {
