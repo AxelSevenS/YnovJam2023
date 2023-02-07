@@ -6,8 +6,11 @@ using Unity.Netcode;
 
 using SevenGame.Utility;
 
+
+[RequireComponent(typeof(Animator))]
 public class Player : Character {
 
+    protected Animator animator;
 
     public static List<Player> players = new List<Player>();
 
@@ -23,7 +26,7 @@ public class Player : Character {
     private NetworkVariable<Vector3> _totalMovement = new(value: Vector3.zero);
 
     private NetworkVariable<Vector3> relativeDirection = new(value: Vector3.zero, writePerm : NetworkVariableWritePermission.Owner);
-    private NetworkVariable<Quaternion> cameraRotation = new(value: Quaternion.identity, writePerm : NetworkVariableWritePermission.Owner);
+    public NetworkVariable<Quaternion> cameraRotation = new(value: Quaternion.identity, writePerm : NetworkVariableWritePermission.Owner);
     
     private NetworkVariable<bool> sprinting = new(value: false, writePerm : NetworkVariableWritePermission.Owner);
 
@@ -39,14 +42,21 @@ public class Player : Character {
 
 
 
-    public override float health {
+    [SerializeField] private int _health = maxHealth;
+    public const int maxHealth = 2;
+
+    public int health {
         get {
-            return base.health;
+            return _health;
         }
         set {
-            base.health = value;
+            Debug.Log("Health: " + value);
+            _health = value;
+            if(_health <= 0) {
+                Die();
+            }
             if (healthImage != null)
-                healthImage.fillAmount = health / maxHealth;
+                healthImage.fillAmount = (float)health / (float)maxHealth;
         }
     }
 
@@ -77,6 +87,8 @@ public class Player : Character {
 
     [SerializeField] protected Image healthImage;
     [SerializeField] protected Image staminaImage;
+    [SerializeField] protected Image batteryImage;
+    [SerializeField] protected Image flashImage;
     public CameraController cameraController;
 
     [SerializeField] private Flashlight flashlight;
@@ -101,6 +113,8 @@ public class Player : Character {
             GameObject uiObject = GameObject.Instantiate(uiPrefab);
             healthImage = uiObject.transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<Image>();
             staminaImage = uiObject.transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<Image>();
+            batteryImage = uiObject.transform.GetChild(0).GetChild(2).GetChild(0).GetComponent<Image>();
+            flashImage = uiObject.transform.GetChild(0).GetChild(2).GetChild(1).GetComponent<Image>();
         }
 
         // if (players.Count > 0) {
@@ -123,7 +137,7 @@ public class Player : Character {
     }
 
 
-    protected override void Die() {
+    protected virtual void Die() {
         this.enabled = false;
     }
 
@@ -172,6 +186,10 @@ public class Player : Character {
         flashlight.originPosition = characterCollider.transform.position;
 
 
+        flashImage.fillAmount = (float)flashlight.flashCount.Value / (float)Flashlight.maxFlashCount;
+        batteryImage.fillAmount = flashlight.battery.Value / Flashlight.maxBattery;
+
+
         bool forward = Input.GetKey(KeyCode.Z);
         bool back = Input.GetKey(KeyCode.S);
         bool right = Input.GetKey(KeyCode.D);
@@ -198,8 +216,6 @@ public class Player : Character {
         cameraRotation.Value = Quaternion.LookRotation(groundForward, groundUp);
     }
 
-    
-
 
     private void OnEnable() {
         players.Add(this);
@@ -218,10 +234,12 @@ public class Player : Character {
         audioSource = GetComponent<AudioSource>();
         audioSource.spatialBlend = 1f;
         audioSource.dopplerLevel = 0f;
+        animator = GetComponent<Animator>();
     }
 
     protected override void Start() {
         base.Start();
+        health = 3;
     }
 
     protected override void FixedUpdate() {

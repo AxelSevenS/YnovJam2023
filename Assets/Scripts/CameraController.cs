@@ -29,7 +29,9 @@ public class CameraController : MonoBehaviour {
 
 
     private void UpdateCameraRotation() {
-        Vector2 mouseDelta = new Vector2( Input.GetAxis("Mouse X") / 2.5f, -Input.GetAxis("Mouse Y") / 2.5f );
+        float sensitivity = 1.2f;
+        Vector2 mouseDelta = new Vector2( Input.GetAxis("Mouse X") * sensitivity, -Input.GetAxis("Mouse Y") * sensitivity );
+
         mousePosition = new Vector2( mousePosition.x+mouseDelta.x, Mathf.Clamp(mousePosition.y+mouseDelta.y, -90, 90) );
     }
 

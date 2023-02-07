@@ -7,6 +7,9 @@ using Unity.Collections;
 
 public class MusicPlatesController : NetworkBehaviour {
 
+    public static MusicPlatesController instance;
+
+
     [SerializeField] private PuzzleSlab plate1;
     [SerializeField] private PuzzleSlab plate2;
     [SerializeField] private PuzzleSlab plate3;
@@ -20,7 +23,7 @@ public class MusicPlatesController : NetworkBehaviour {
     [SerializeField] private NetworkVariable<FixedString64Bytes> currentSequence = new(value: "", writePerm: NetworkVariableWritePermission.Server);
     [SerializeField] private NetworkVariable<FixedString64Bytes> playerSequence = new(value: "", writePerm: NetworkVariableWritePermission.Server);
 
-    private NetworkVariable<State> state = new(value: State.Idle, writePerm: NetworkVariableWritePermission.Server);
+    public NetworkVariable<State> state = new(value: State.Idle, writePerm: NetworkVariableWritePermission.Server);
 
     private NetworkVariable<int> success = new(value: 0, writePerm: NetworkVariableWritePermission.Server);
 
@@ -120,6 +123,8 @@ public class MusicPlatesController : NetworkBehaviour {
 
                 if (IsServer)
                     state.Value = State.Completed;
+    
+                GameController.instance.CompletePuzzles();
             } else {
                 if (IsServer)
                     state.Value = State.SequenceDisplay;
@@ -152,6 +157,7 @@ public class MusicPlatesController : NetworkBehaviour {
 
 
     private void OnEnable() {
+        instance = this;
         plate1.onPlayerStep += (player) => PlateStep(1);
         plate2.onPlayerStep += (player) => PlateStep(2);
         plate3.onPlayerStep += (player) => PlateStep(3);
@@ -223,7 +229,7 @@ public class MusicPlatesController : NetworkBehaviour {
         }
     }
 
-    private enum State {
+    public enum State {
         Idle,
         SequenceDisplay,
         InputNeeded,

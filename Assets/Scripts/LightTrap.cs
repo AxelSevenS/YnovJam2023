@@ -6,7 +6,7 @@ public class LightTrap : MonoBehaviour {
 
     private void OnTriggerEnter(Collider collider) {
         Rigidbody rigidbody = collider.attachedRigidbody;
-        if (rigidbody != null && rigidbody.gameObject.TryGetComponent(out Enemy enemy)) {
+        if (rigidbody != null && rigidbody.gameObject.TryGetComponent(out StalkerEnemy enemy)) {
             enemy.Stun(10f);
         }
         

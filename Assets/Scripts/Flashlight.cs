@@ -24,25 +24,25 @@ public class Flashlight : NetworkBehaviour {
     [SerializeField] private NetworkVariable<bool> flashLightOn = new(value: false, writePerm: NetworkVariableWritePermission.Owner);
     public NetworkVariable<bool> charging = new(value: false, writePerm: NetworkVariableWritePermission.Server);
 
-    private List<Enemy> flashTargets = new List<Enemy>();
+    private List<StalkerEnemy> flashTargets = new List<StalkerEnemy>();
     
-    private const float flashLightChargeTime = 5f;
+    public const float flashLightChargeTime = 5f;
 
-    private const float normalLightIntensity = 50f;
+    public const float normalLightIntensity = 50f;
     [SerializeField] private NetworkVariable<float> lightIntensity = new(value: normalLightIntensity, writePerm: NetworkVariableWritePermission.Server);
     
-    private const float normalLightRange = 75f;
+    public const float normalLightRange = 75f;
     [SerializeField] private NetworkVariable<float> lightRange = new(value: normalLightRange, writePerm: NetworkVariableWritePermission.Server);
 
-    private const float normalLightSize = 100f;
+    public const float normalLightSize = 100f;
     [SerializeField] private NetworkVariable<float> lightAngle = new(value: normalLightSize, writePerm: NetworkVariableWritePermission.Server);
 
     private NetworkVariable<bool> flashInitiated = new(value: false, writePerm: NetworkVariableWritePermission.Owner);
-    private const int maxFlashCount = 5;
-    [SerializeField] private NetworkVariable<int> flashCount = new(value: maxFlashCount, writePerm: NetworkVariableWritePermission.Server);
+    public const int maxFlashCount = 5;
+    [SerializeField] public NetworkVariable<int> flashCount = new(value: maxFlashCount, writePerm: NetworkVariableWritePermission.Server);
 
-    private const float maxBattery = 15f;
-    [SerializeField] private NetworkVariable<float> battery = new(value: maxBattery, writePerm: NetworkVariableWritePermission.Server);
+    public const float maxBattery = 25f;
+    [SerializeField] public NetworkVariable<float> battery = new(value: maxBattery, writePerm: NetworkVariableWritePermission.Server);
 
     public NetworkVariable<bool> chargeInput = new(value: false, writePerm: NetworkVariableWritePermission.Owner);
     public NetworkVariable<bool> toggleInput = new(value: false, writePerm: NetworkVariableWritePermission.Owner);
@@ -68,7 +68,7 @@ public class Flashlight : NetworkBehaviour {
 
         Collider[] hitColliders = Physics.OverlapCapsule(capsuleStart, capsuleEnd, 4f);
         foreach (Collider collider in hitColliders) {
-            if (collider.attachedRigidbody != null && collider.attachedRigidbody.TryGetComponent(out Enemy targetedEnemy)) {
+            if (collider.attachedRigidbody != null && collider.attachedRigidbody.TryGetComponent(out StalkerEnemy targetedEnemy)) {
                 flashTargets.Add(targetedEnemy);
             }
         }
@@ -84,8 +84,8 @@ public class Flashlight : NetworkBehaviour {
                 lightAngle.Value = 150f;
                 lightRange.Value = 150f;
 
-                foreach (Enemy enemy in flashTargets) {
-                    enemy?.Stun(5f);
+                foreach (StalkerEnemy stalkerEnemy in flashTargets) {
+                    stalkerEnemy?.Stun(5f);
                 }
 
                 flashCount.Value -= 1;
@@ -174,8 +174,8 @@ public class Flashlight : NetworkBehaviour {
             if (lightEnabled) {
                 UpdateFlashLightTargets();
 
-                foreach (Enemy enemy in flashTargets) {
-                    enemy.slowness = 0.5f;
+                foreach (StalkerEnemy stalkerEnemy in flashTargets) {
+                    stalkerEnemy.slowness = 0.5f;
                 }
 
                 battery.Value = Mathf.MoveTowards(battery.Value, 0, Time.deltaTime);

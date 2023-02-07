@@ -18,19 +18,17 @@ public class SlabsController : NetworkBehaviour {
     private int progress = -1;
 
 
-    // private static bool _completed = false;
+    private static bool _completed = false;
 
-    // public static bool completed {
-    //     get {
-    //         return _completed;
-    //     }
-    //     private set {
-    //         _completed = value;
-    //         if (MusicPlatesController.completed && completed) {
-    //             GameController.instance.CompletePuzzles();
-    //         }
-    //     }
-    // }
+    public static bool completed {
+        get {
+            return _completed;
+        }
+        private set {
+            _completed = value;
+            GameController.instance.CompletePuzzles();
+        }
+    }
 
 
 
@@ -169,7 +167,7 @@ public class SlabsController : NetworkBehaviour {
                 player2Slab1.renderer.material.color = Color.green;
                 player2Slab2.renderer.material.color = Color.green;
                 player2Slab3.renderer.material.color = Color.green;
-                // completed = true;
+                completed = true;
                 break;
         }
 

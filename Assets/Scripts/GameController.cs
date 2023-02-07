@@ -13,9 +13,9 @@ public class GameController : MonoBehaviour {
     }
 
     public void CompletePuzzles() {
-        // if (MusicPlatesController.completed && SlabsController.completed) {
-        //     Debug.Log("All puzzles completed!");
-        //     Instantiate(finishPrefab, new Vector3(-35, -10f, -120f), Quaternion.identity);
-        // }
+        if (MusicPlatesController.instance.state.Value == MusicPlatesController.State.Completed && SlabsController.completed) {
+            Debug.Log("All puzzles completed!");
+            Instantiate(finishPrefab, new Vector3(-35, -10f, -120f), Quaternion.identity);
+        }
     }
 }

@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 4648774695077034243}
   - component: {fileID: 4648774695077034242}
   - component: {fileID: 4648774695077034253}
-  - component: {fileID: 4648774695077034252}
   - component: {fileID: 4648774695077034250}
   - component: {fileID: 4648774695077034248}
   - component: {fileID: 4648774695077034251}
@@ -88,8 +87,6 @@ MonoBehaviour:
   audioSource: {fileID: 145922077}
   screamClip: {fileID: 8300000, guid: 21b31c99c8af758469ac5b100fedda61, type: 3}
   stepClip: {fileID: 8300000, guid: e4a902a0571a8854d9229b35af83f965, type: 3}
-  wanderTimer: 0
-  wanderRadius: 10
   slowness: 1
 --- !u!195 &4648774695077034253
 NavMeshAgent:
@@ -113,26 +110,6 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
---- !u!95 &4648774695077034252
-Animator:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4648774695077034245}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!114 &4648774695077034250
 MonoBehaviour:
   m_ObjectHideFlags: 0
