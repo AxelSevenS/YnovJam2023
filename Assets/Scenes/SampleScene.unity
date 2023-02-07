@@ -14,7 +14,7 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
-  m_Fog: 0
+  m_Fog: 1
   m_FogColor: {r: 0, g: 0, b: 0, a: 1}
   m_FogMode: 2
   m_FogDensity: 0.15
@@ -1632,7 +1632,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4648774695077034245, guid: 5d0dcc17e210ee2449c35565f93a60d5, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4648774695077034250, guid: 5d0dcc17e210ee2449c35565f93a60d5, type: 3}
       propertyPath: GlobalObjectIdHash
@@ -1644,7 +1644,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4648774695077034255, guid: 5d0dcc17e210ee2449c35565f93a60d5, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -16.8
+      value: -2.86
       objectReference: {fileID: 0}
     - target: {fileID: 4648774695077034255, guid: 5d0dcc17e210ee2449c35565f93a60d5, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1652,7 +1652,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4648774695077034255, guid: 5d0dcc17e210ee2449c35565f93a60d5, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -57.05
+      value: -219.7
       objectReference: {fileID: 0}
     - target: {fileID: 4648774695077034255, guid: 5d0dcc17e210ee2449c35565f93a60d5, type: 3}
       propertyPath: m_LocalRotation.w
@@ -2493,7 +2493,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 7.19
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -3226,7 +3226,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1119692549377594374, guid: 96c19311eb6c4864aacef168469a0327, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1119692549377594377, guid: 96c19311eb6c4864aacef168469a0327, type: 3}
       propertyPath: GlobalObjectIdHash
@@ -3238,15 +3238,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1119692549377594380, guid: 96c19311eb6c4864aacef168469a0327, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 13.946
+      value: -41.83
       objectReference: {fileID: 0}
     - target: {fileID: 1119692549377594380, guid: 96c19311eb6c4864aacef168469a0327, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -10.25
+      value: -8.95
       objectReference: {fileID: 0}
     - target: {fileID: 1119692549377594380, guid: 96c19311eb6c4864aacef168469a0327, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -134
+      value: -57.99
       objectReference: {fileID: 0}
     - target: {fileID: 1119692549377594380, guid: 96c19311eb6c4864aacef168469a0327, type: 3}
       propertyPath: m_LocalRotation.w

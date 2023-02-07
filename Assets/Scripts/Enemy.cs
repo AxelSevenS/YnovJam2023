@@ -12,6 +12,7 @@ public abstract class Enemy : Character {
 
     [SerializeField] protected AudioClip stepClip;
     [SerializeField] protected AudioClip screamClip;
+    [SerializeField] protected GameObject jumpScarePrefab;
 
     [SerializeField] protected Player targetedPlayer;
     
@@ -91,6 +92,9 @@ public abstract class Enemy : Character {
 
     protected virtual void Chase() {
 
+        if (!targetedPlayer)
+            return;
+
         if ( !targetedPlayer.enabled || (targetedPlayer.transform.position - characterCollider.transform.position).sqrMagnitude > Mathf.Pow(escapeDistance, 2f) ) {
             targetedPlayer = null;
             enemyState = EnemyState.Wander;
@@ -117,17 +121,16 @@ public abstract class Enemy : Character {
 
 
     protected void AttackTargetedPlayer() {
+
+        if (!targetedPlayer)
+            return;
+            
         float sqrDistance = (targetedPlayer.transform.position - transform.position).sqrMagnitude;
 
         if (sqrDistance < 4f) {
-            targetedPlayer.health -= 1;
+            targetedPlayer.JumpScare(jumpScarePrefab);
             Stun(7f);
         }
-        
-        // if (sqrDistance < 4f) {
-        //     targetedPlayer.health = Mathf.MoveTowards( targetedPlayer.health, 0, 25f * Time.deltaTime);
-        //     Debug.Log(targetedPlayer.health);
-        // }
     }
 
 

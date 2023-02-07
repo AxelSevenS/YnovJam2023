@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Disappear : MonoBehaviour {
-    // Start is called before the first frame update
+
+    [SerializeField] private float time = 5f;
+    
     IEnumerator Start() {
-        yield return new WaitForSeconds(18f);
+        yield return new WaitForSeconds(time);
         Destroy(gameObject);
     }
 }

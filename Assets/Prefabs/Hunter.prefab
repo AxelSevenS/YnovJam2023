@@ -342,6 +342,7 @@ MonoBehaviour:
   audioSource: {fileID: 5695419124102673694}
   stepClip: {fileID: 8300000, guid: 966e4e69e46d9674490f35c87c028bf4, type: 3}
   screamClip: {fileID: 8300000, guid: 0ac1f56a20a83124da6fca8241a09cd3, type: 3}
+  jumpScarePrefab: {fileID: 3212672919945510115, guid: 856428f8b5598e24baef9f2b16b24abb, type: 3}
   targetedPlayer: {fileID: 0}
   enemyState: 0
   movementMultiplier: 1

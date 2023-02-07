@@ -3,18 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class End : MonoBehaviour {
-    private int players = 0;
-
     [SerializeField] private GameObject finishPrefab;
 
     private void OnTriggerEnter(Collider other) {
         if (other.gameObject.TryGetComponent(out Player player)) {
-            players++;
+
+            player.won = true;
+
+            if (Player.playersWon.Count >= Player.players.Count) {
+                foreach (Player wonPlayer in Player.players) {
+                    
+                    if (wonPlayer.IsOwner)
+                        Instantiate(finishPrefab);
+
+                    StartCoroutine(EndGame());
+
+                }
+            }
             Destroy(player.cameraController);
             Destroy(player.gameObject);
         }
-        if (players >= Player.players.Count) {
-            Instantiate(finishPrefab);
-        }
+    }
+
+    private IEnumerator EndGame() {
+        yield return new WaitForSeconds(5f);
+        Application.Quit();
     }
 }

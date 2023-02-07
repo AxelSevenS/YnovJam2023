@@ -85,6 +85,9 @@ public class HunterEnemy : Enemy {
     protected override void Chase() {
         Wander();
 
+        if (!targetedPlayer)
+            return;
+
         navMeshAgent.SetDestination(targetedPlayer.transform.position); 
         AttackTargetedPlayer();
     }

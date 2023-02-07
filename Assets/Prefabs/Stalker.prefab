@@ -83,10 +83,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _isGrounded: 0
-  enemyState: 0
   audioSource: {fileID: 145922077}
-  screamClip: {fileID: 8300000, guid: 21b31c99c8af758469ac5b100fedda61, type: 3}
   stepClip: {fileID: 8300000, guid: e4a902a0571a8854d9229b35af83f965, type: 3}
+  screamClip: {fileID: 8300000, guid: 21b31c99c8af758469ac5b100fedda61, type: 3}
+  jumpScarePrefab: {fileID: 8436813445930093077, guid: 1b1a1b281f0b4bf43989a444b7ea2cf7, type: 3}
+  targetedPlayer: {fileID: 0}
+  enemyState: 0
   slowness: 1
 --- !u!195 &4648774695077034253
 NavMeshAgent:

@@ -13,6 +13,17 @@ public class Player : Character {
     protected Animator animator;
 
     public static List<Player> players = new List<Player>();
+    public static List<Player> playersWon {
+        get {
+            List<Player> playersWon = new List<Player>();
+            foreach (Player player in players) {
+                if (player.won) {
+                    playersWon.Add(player);
+                }
+            }
+            return playersWon;
+        }
+    }
 
 
 
@@ -38,6 +49,8 @@ public class Player : Character {
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip tiredClip;
 
+    public bool won = false;
+
     // public Vector3 jumpDirection;
 
 
@@ -53,7 +66,7 @@ public class Player : Character {
             Debug.Log("Health: " + value);
             _health = value;
             if(_health <= 0) {
-                Die();
+                StartCoroutine(Die());
             }
             if (healthImage != null)
                 healthImage.fillAmount = (float)health / (float)maxHealth;
@@ -104,6 +117,13 @@ public class Player : Character {
         }
     }
 
+    public void JumpScare(GameObject jumpScareObject) {
+        if (IsOwner) {
+            health -= 1;
+            GameObject.Instantiate(jumpScareObject, cameraController.transform);
+        }
+    }
+
     public override void OnNetworkSpawn() {
         if (IsOwner) {
             GameObject cameraObject = Camera.main.gameObject;
@@ -137,8 +157,15 @@ public class Player : Character {
     }
 
 
-    protected virtual void Die() {
+    protected virtual IEnumerator Die() {
         this.enabled = false;
+        yield return new WaitForSeconds(5f);
+
+        if (players.Count < 1 && playersWon.Count < 1) {
+            Debug.Log("Game Over");
+            Application.Quit();
+        }
+
     }
 
     private void PlayerMovement() {
@@ -223,10 +250,6 @@ public class Player : Character {
 
     private void OnDisable() {
         players.Remove(this);
-        if (players.Count < 1) {
-            Debug.Log("Game Over");
-            Application.Quit();
-        }
     }
 
     protected override void Awake() {
